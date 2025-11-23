@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+gradle/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# Android Studio
+.idea/
+*.apk
+*.jks
+*.keystore
+
+# Build directories
+/app/build/
+/local/build/
+
+# Generated files
+*.class
+*.jar
+*.zip
+*.so
+*.dll
+*.exe
+
+# Local configuration file (SDK path, etc)
+local.properties

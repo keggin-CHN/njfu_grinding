@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/question_number_circle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/question_circle_bg"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+</FrameLayout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="card_corner_radius">8dp</dimen>
+    <dimen name="font_size_small">12sp</dimen>
+    <dimen name="font_size_medium">15sp</dimen>
+    <dimen name="font_size_large">17sp</dimen>
+    <dimen name="font_size_xlarge">19sp</dimen>
+    <dimen name="button_height_large">60dp</dimen>
+</resources>
