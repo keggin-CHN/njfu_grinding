@@ -123,10 +123,7 @@ njfu_exam_app-main/
 #### 1. 环境准备
 
 ```bash
-# 进入爬虫目录
 cd 爬虫
-
-# 安装Python依赖
 pip install -r requirements.txt
 ```
 
@@ -146,7 +143,6 @@ HEADLESS = False                 # True为无头模式(不显示浏览器窗口)
 #### 3. 运行爬虫
 
 ```bash
-# 启动爬虫程序
 python scraper.py
 ```
 
@@ -256,7 +252,18 @@ python scraper.py
 3. 连接Android设备或启动模拟器
 4. 点击运行按钮
 
-## 📝 许可证
+## 💖 支持项目
+
+开发不易，如果本项目对你有帮助，欢迎 Star ⭐，也欢迎投喂 (๑• . •๑)♡
+
+<div align="center">
+  <img src="https://github.com/keggin-CHN/njfu_grinding/blob/main/3B7FBA4EFAB7A4B08D4F46080F8DED8D.jpg?raw=true" width="300" />
+  <p><i>微信赞赏码</i></p>
+</div>
+
+---
+
+##  许可证
 
 本项目采用开源许可证,详见 [LICENSE](LICENSE) 文件。
 
