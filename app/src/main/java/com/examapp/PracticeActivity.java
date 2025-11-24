@@ -250,10 +250,6 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
         String mode = getIntent().getStringExtra(EXTRA_MODE);
         boolean shouldReset = MODE_RANDOM.equals(mode) || MODE_WRONG_REVIEW.equals(mode);
 
-        if (shouldReset) {
-            questionManager.resetUserAnswers(subjectId);
-        }
-
         if (MODE_WRONG_REVIEW.equals(mode)) {
             baseQuestions = questionManager.getWrongQuestions(subjectId);
             if (baseQuestions.isEmpty()) {
@@ -262,6 +258,11 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
                 return;
             }
             questions = questionManager.getClonedQuestions(baseQuestions);
+            // 重置会话中的答题状态（不影响持久化数据）
+            for (Question q : questions) {
+                q.setUserAnswer(null);
+                q.setAnswerState(Question.AnswerState.UNANSWERED);
+            }
             Collections.shuffle(questions);
             currentPosition = 0;
         } else if (subject != null) {
@@ -269,15 +270,20 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
             questions = questionManager.getClonedQuestions(baseQuestions);
 
             if (isRandomOrder) {
+                // 随机模式：重置会话中的答题状态
+                for (Question q : questions) {
+                    q.setUserAnswer(null);
+                    q.setAnswerState(Question.AnswerState.UNANSWERED);
+                }
                 Collections.shuffle(questions);
                 currentPosition = 0;
             } else {
+                // 顺序刷题和背题模式：保留答题记录
                 if (MODE_SEQUENTIAL.equals(mode)) {
                     currentPosition = Math.max(0, subject.getSequentialLastPosition());
                 } else if (MODE_REVIEW.equals(mode)) {
                     currentPosition = Math.max(0, subject.getReviewLastPosition());
                 } else {
-                    // Fallback for any other non-random mode, though we mainly care about sequential and review.
                     currentPosition = 0;
                 }
             }
