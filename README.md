@@ -3,6 +3,8 @@
 
 BUG问题可提交issue，也可联系本人: admin@mail.keggin.me
 
+最新版刷题安卓APP下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/APP/NJFU.grinding.apk
+
 本项目包含两个主要部分：题库爬虫和Android刷题应用。
 
 ## ⚠️ 使用声明
