@@ -114,7 +114,10 @@ public class QuestionManager {
         Subject subject = subjects.get(subjectId);
         if (subject != null && subject.getQuestions() != null && questionIndex >= 0 && questionIndex < subject.getQuestions().size()) {
             Question question = subject.getQuestions().get(questionIndex);
-            // 注意：这里不再设置 userAnswer，因为会话状态是隔离的
+            // 保存用户答案和答题状态到原始题目
+            question.setUserAnswer(answer);
+            question.setAnswerState(isCorrect ? Question.AnswerState.CORRECT : Question.AnswerState.WRONG);
+            
             if (isCorrect) {
                 subject.setCorrectCount(subject.getCorrectCount() + 1);
             } else {
@@ -122,7 +125,7 @@ public class QuestionManager {
                 incrementWrongAnswerCount(question.getId());
             }
             subject.setAttemptedCount(subject.getAttemptedCount() + 1);
-            // 保存科目状态，但不保存单个问题的 userAnswer
+            // 保存科目状态和题目的答题记录
             saveSubjects();
         }
     }
@@ -226,6 +229,21 @@ public class QuestionManager {
                 q.setAnswerState(Question.AnswerState.UNANSWERED);
             }
             saveSubjects();
+        }
+    }
+    
+    /**
+     * 仅重置顺序刷题模式的用户答案（用于随机模式和错题回顾模式）
+     */
+    public void resetUserAnswersForSession(String subjectId) {
+        // 这个方法不保存到持久化存储，仅用于会话中的临时重置
+        Subject subject = getSubject(subjectId);
+        if (subject != null && subject.getQuestions() != null) {
+            for (Question q : subject.getQuestions()) {
+                q.setUserAnswer(null);
+                q.setAnswerState(Question.AnswerState.UNANSWERED);
+            }
+            // 注意：不调用 saveSubjects()，这样不会影响持久化的答题记录
         }
     }
 
