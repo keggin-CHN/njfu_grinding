@@ -7,8 +7,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.CheckBox;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,8 +22,15 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GestureDetectorCompat;
 import com.examapp.data.QuestionManager;
+import com.examapp.data.AISettingsManager;
+import com.examapp.data.AICacheManager;
+import com.examapp.service.AIService;
 import com.examapp.model.Question;
 import com.examapp.model.Subject;
+import com.examapp.util.DraggableFABHelper;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import io.noties.markwon.Markwon;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +39,10 @@ import java.util.List;
 public class EndlessModeActivity extends BaseActivity implements GestureDetector.OnGestureListener {
 
     private QuestionManager questionManager;
+    private AISettingsManager aiSettingsManager;
+    private AICacheManager aiCacheManager;
+    private AIService aiService;
+    private Markwon markwon;
     private Subject subject;
     private List<Question> questions;
     private int currentPosition;
@@ -39,6 +52,8 @@ public class EndlessModeActivity extends BaseActivity implements GestureDetector
     private String subjectName;
     private GestureDetectorCompat gestureDetector;
     private boolean isBinding;
+    private FloatingActionButton aiAssistantButton;
+    private DraggableFABHelper draggableFABHelper;
 
     private TextView questionNumberView;
     private TextView questionTypeView;
@@ -61,6 +76,10 @@ public class EndlessModeActivity extends BaseActivity implements GestureDetector
         subjectId = getIntent().getStringExtra(StudyModeActivity.EXTRA_SUBJECT_ID);
         subjectName = getIntent().getStringExtra(StudyModeActivity.EXTRA_SUBJECT_NAME);
         questionManager = QuestionManager.getInstance(this);
+        aiSettingsManager = AISettingsManager.getInstance(this);
+        aiCacheManager = AICacheManager.getInstance(this);
+        aiService = AIService.getInstance(this);
+        markwon = Markwon.create(this);
         subject = questionManager.getSubject(subjectId);
         if ((subjectName == null || subjectName.isEmpty()) && subject != null) {
             subjectName = subject.getDisplayName();
@@ -99,11 +118,15 @@ public class EndlessModeActivity extends BaseActivity implements GestureDetector
         favoriteButton = findViewById(R.id.favorite_button);
         previousButton = findViewById(R.id.previous_button);
         nextButton = findViewById(R.id.next_button);
+        aiAssistantButton = findViewById(R.id.ai_assistant_button);
 
+        // 设置拖动功能
+        draggableFABHelper = new DraggableFABHelper();
+        draggableFABHelper.makeDraggable(aiAssistantButton, v -> showAIDialog());
+        
         favoriteButton.setOnClickListener(v -> toggleStar());
         previousButton.setOnClickListener(v -> moveToPreviousQuestion());
         nextButton.setOnClickListener(v -> moveToNextQuestion());
-
 
         updateStreakViews();
     }
@@ -369,6 +392,111 @@ public class EndlessModeActivity extends BaseActivity implements GestureDetector
         return false;
     }
 
+
+    private void showAIDialog() {
+        showAIDialog(false);
+    }
+    
+    private void showAIDialog(boolean forceRefresh) {
+        if (!aiSettingsManager.isConfigured()) {
+            Toast.makeText(this, R.string.ai_not_configured, Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        if (questions == null || questions.isEmpty() || currentPosition >= questions.size()) {
+            Toast.makeText(this, "无法获取当前题目", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Question currentQuestion = questions.get(currentPosition);
+        
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ai_answer, null);
+        dialog.setContentView(dialogView);
+        
+        ProgressBar progressBar = dialogView.findViewById(R.id.ai_progress_bar);
+        TextView thinkingText = dialogView.findViewById(R.id.ai_thinking_text);
+        TextView answerText = dialogView.findViewById(R.id.ai_answer_text);
+        TextView errorText = dialogView.findViewById(R.id.ai_error_text);
+        ImageView modelIcon = dialogView.findViewById(R.id.ai_model_icon);
+        TextView modelName = dialogView.findViewById(R.id.ai_model_name);
+        ImageButton refreshButton = dialogView.findViewById(R.id.ai_refresh_button);
+        Button closeButton = dialogView.findViewById(R.id.ai_close_button);
+        
+        // 设置模型信息
+        String model = aiSettingsManager.getModel();
+        modelName.setText(model != null && !model.isEmpty() ? model : "AI助手");
+        modelIcon.setImageResource(getModelIconResource(model));
+        
+        // 刷新按钮点击事件
+        refreshButton.setOnClickListener(v -> {
+            loadAIResponse(currentQuestion, progressBar, thinkingText, answerText, errorText, true);
+        });
+        
+        closeButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 加载AI响应
+        loadAIResponse(currentQuestion, progressBar, thinkingText, answerText, errorText, forceRefresh);
+        
+        dialog.show();
+    }
+    
+    private void loadAIResponse(Question question, ProgressBar progressBar,
+                                TextView thinkingText, TextView answerText,
+                                TextView errorText, boolean forceRefresh) {
+        // 显示加载状态
+        progressBar.setVisibility(View.VISIBLE);
+        thinkingText.setVisibility(View.VISIBLE);
+        answerText.setVisibility(View.GONE);
+        errorText.setVisibility(View.GONE);
+        
+        // 调用AI服务
+        aiService.askQuestion(question, new AIService.AICallback() {
+            @Override
+            public void onSuccess(String response) {
+                progressBar.setVisibility(View.GONE);
+                thinkingText.setVisibility(View.GONE);
+                answerText.setVisibility(View.VISIBLE);
+                // 使用Markwon渲染Markdown
+                markwon.setMarkdown(answerText, response);
+            }
+            
+            @Override
+            public void onError(String error) {
+                progressBar.setVisibility(View.GONE);
+                thinkingText.setVisibility(View.GONE);
+                errorText.setVisibility(View.VISIBLE);
+                errorText.setText(getString(R.string.ai_error) + ": " + error);
+            }
+        }, forceRefresh);
+    }
+    
+    private int getModelIconResource(String model) {
+        if (model == null || model.isEmpty()) {
+            return R.drawable.ic_ai_assistant;
+        }
+        
+        String lowerModel = model.toLowerCase();
+        if (lowerModel.contains("gpt") || lowerModel.contains("openai")) {
+            return R.drawable.openai;
+        } else if (lowerModel.contains("gemini")) {
+            return R.drawable.gemini_color;
+        } else if (lowerModel.contains("claude")) {
+            return R.drawable.claude_color;
+        } else if (lowerModel.contains("deepseek")) {
+            return R.drawable.deepseek_color;
+        } else if (lowerModel.contains("glm") || lowerModel.contains("chatglm")) {
+            return R.drawable.chatglm_color;
+        } else if (lowerModel.contains("qwen")) {
+            return R.drawable.qwen_color;
+        } else if (lowerModel.contains("grok")) {
+            return R.drawable.grok;
+        } else if (lowerModel.contains("ollama")) {
+            return R.drawable.ollama;
+        } else {
+            return R.drawable.ic_ai_assistant;
+        }
+    }
 
     @Override
     public boolean onSupportNavigateUp() {

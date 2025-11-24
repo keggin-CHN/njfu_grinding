@@ -12,6 +12,9 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
 import android.widget.TextView;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.app.ProgressDialog;
 import android.graphics.BitmapFactory;
 import java.io.File;
@@ -32,6 +35,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.examapp.data.SettingsManager;
+import com.examapp.data.AISettingsManager;
+import com.examapp.service.AIService;
 import com.canhub.cropper.CropImage;
 import com.canhub.cropper.CropImageContract;
 import com.canhub.cropper.CropImageContractOptions;
@@ -44,6 +49,8 @@ public class SettingsActivity extends BaseActivity {
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     private static final int PERMISSION_REQUEST_CODE = 201;
     private SettingsManager settingsManager;
+    private AISettingsManager aiSettingsManager;
+    private AIService aiService;
     private EditText backgroundUrlInput;
     private SeekBar transparencySeekBar;
     private Button saveButton;
@@ -51,6 +58,21 @@ public class SettingsActivity extends BaseActivity {
     private Switch developerModeSwitch;
     private TextView transparencyValueText;
     private EditText customCssInput;
+    
+    // AI Settings
+    private EditText aiBaseUrlInput;
+    private TextView aiFullPathText;
+    private EditText aiApiKeyInput;
+    private Spinner aiModelSpinner;
+    private Button aiRefreshModelsButton;
+    private SeekBar aiTemperatureSeekBar;
+    private TextView aiTemperatureValueText;
+    private SeekBar aiTopPSeekBar;
+    private TextView aiTopPValueText;
+    private Button aiResetParamsButton;
+    private SeekBar aiMaxRetrySeekBar;
+    private TextView aiMaxRetryValueText;
+    private ArrayAdapter<String> modelAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +91,8 @@ public class SettingsActivity extends BaseActivity {
         });
 
         settingsManager = SettingsManager.getInstance(this);
+        aiSettingsManager = AISettingsManager.getInstance(this);
+        aiService = AIService.getInstance(this);
         initializeUI();
         loadSettings();
     }
@@ -78,6 +102,20 @@ public class SettingsActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        // AI Settings
+        aiBaseUrlInput = findViewById(R.id.ai_base_url_input);
+        aiFullPathText = findViewById(R.id.ai_full_path_text);
+        aiApiKeyInput = findViewById(R.id.ai_api_key_input);
+        aiModelSpinner = findViewById(R.id.ai_model_spinner);
+        aiRefreshModelsButton = findViewById(R.id.ai_refresh_models_button);
+        aiTemperatureSeekBar = findViewById(R.id.ai_temperature_seekbar);
+        aiTemperatureValueText = findViewById(R.id.ai_temperature_value_text);
+        aiTopPSeekBar = findViewById(R.id.ai_top_p_seekbar);
+        aiTopPValueText = findViewById(R.id.ai_top_p_value_text);
+        aiResetParamsButton = findViewById(R.id.ai_reset_params_button);
+        aiMaxRetrySeekBar = findViewById(R.id.ai_max_retry_seekbar);
+        aiMaxRetryValueText = findViewById(R.id.ai_max_retry_value_text);
+        
         backgroundUrlInput = findViewById(R.id.background_url_input);
         transparencySeekBar = findViewById(R.id.transparency_seekbar);
         transparencyValueText = findViewById(R.id.transparency_value_text);
@@ -85,6 +123,11 @@ public class SettingsActivity extends BaseActivity {
         selectBackgroundButton = findViewById(R.id.select_background_button);
         developerModeSwitch = findViewById(R.id.developer_mode_switch);
         customCssInput = findViewById(R.id.custom_css_input);
+        
+        // Setup AI model spinner
+        modelAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        modelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        aiModelSpinner.setAdapter(modelAdapter);
 
         TextView authorInfoTextView = findViewById(R.id.author_info_textview);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -96,6 +139,68 @@ public class SettingsActivity extends BaseActivity {
 
         saveButton.setOnClickListener(v -> saveSettings());
         selectBackgroundButton.setOnClickListener(v -> openFilePicker());
+        aiRefreshModelsButton.setOnClickListener(v -> refreshModels());
+        aiResetParamsButton.setOnClickListener(v -> resetAIParameters());
+        
+        // AI Base URL change listener
+        aiBaseUrlInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateFullApiPath();
+            }
+            
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+        
+        // AI Temperature SeekBar
+        aiTemperatureSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float temperature = progress / 100.0f;
+                aiTemperatureValueText.setText(String.format("%.2f", temperature));
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        // AI Top-P SeekBar
+        aiTopPSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float topP = progress / 100.0f;
+                aiTopPValueText.setText(String.format("%.2f", topP));
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        // AI Max Retry SeekBar
+        aiMaxRetrySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // SeekBar range is 0-9, we need 1-10
+                int maxRetry = progress + 1;
+                aiMaxRetryValueText.setText(String.valueOf(maxRetry));
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
         
         transparencySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -191,7 +296,113 @@ public class SettingsActivity extends BaseActivity {
     }
 
 
+    private void updateFullApiPath() {
+        String baseUrl = aiBaseUrlInput.getText().toString().trim();
+        if (!baseUrl.isEmpty()) {
+            // 如果以#结尾,表示使用自定义完整路径
+            if (baseUrl.endsWith("#")) {
+                String customUrl = baseUrl.substring(0, baseUrl.length() - 1);
+                aiFullPathText.setText("完整API路径: " + customUrl + " (自定义完整路径)");
+            } else {
+                String displayUrl = baseUrl;
+                if (displayUrl.endsWith("/")) {
+                    displayUrl = displayUrl.substring(0, displayUrl.length() - 1);
+                }
+                aiFullPathText.setText("完整API路径: " + displayUrl + "/v1/chat/completions");
+            }
+        } else {
+            aiFullPathText.setText("完整API路径: ");
+        }
+    }
+    
+    private void resetAIParameters() {
+        // 重置为默认值
+        aiSettingsManager.resetParametersToDefault();
+        
+        // 更新UI
+        float temperature = aiSettingsManager.getTemperature();
+        aiTemperatureSeekBar.setProgress((int)(temperature * 100));
+        aiTemperatureValueText.setText(String.format("%.2f", temperature));
+        
+        float topP = aiSettingsManager.getTopP();
+        aiTopPSeekBar.setProgress((int)(topP * 100));
+        aiTopPValueText.setText(String.format("%.2f", topP));
+        
+        Toast.makeText(this, "已恢复默认值: Temperature=0.6, Top-P=1.0", Toast.LENGTH_SHORT).show();
+    }
+    
+    private void refreshModels() {
+        String baseUrl = aiBaseUrlInput.getText().toString().trim();
+        String apiKey = aiApiKeyInput.getText().toString().trim();
+        
+        if (baseUrl.isEmpty() || apiKey.isEmpty()) {
+            Toast.makeText(this, "请先填写Base URL和API Key", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // 临时保存以便AIService可以使用
+        aiSettingsManager.setBaseUrl(baseUrl);
+        aiSettingsManager.setApiKey(apiKey);
+        
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.ai_loading_models));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        
+        aiService.fetchModels(new AIService.ModelsCallback() {
+            @Override
+            public void onSuccess(java.util.List<String> models) {
+                progressDialog.dismiss();
+                modelAdapter.clear();
+                modelAdapter.addAll(models);
+                modelAdapter.notifyDataSetChanged();
+                
+                // 如果之前有选择的模型,尝试恢复
+                String savedModel = aiSettingsManager.getModel();
+                if (!savedModel.isEmpty() && models.contains(savedModel)) {
+                    int position = modelAdapter.getPosition(savedModel);
+                    aiModelSpinner.setSelection(position);
+                }
+                
+                Toast.makeText(SettingsActivity.this, "获取到 " + models.size() + " 个模型", Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onError(String error) {
+                progressDialog.dismiss();
+                Toast.makeText(SettingsActivity.this, error, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void loadSettings() {
+        // Load AI Settings
+        aiBaseUrlInput.setText(aiSettingsManager.getBaseUrl());
+        aiApiKeyInput.setText(aiSettingsManager.getApiKey());
+        
+        float temperature = aiSettingsManager.getTemperature();
+        aiTemperatureSeekBar.setProgress((int)(temperature * 100));
+        aiTemperatureValueText.setText(String.format("%.2f", temperature));
+        
+        float topP = aiSettingsManager.getTopP();
+        aiTopPSeekBar.setProgress((int)(topP * 100));
+        aiTopPValueText.setText(String.format("%.2f", topP));
+        
+        int maxRetry = aiSettingsManager.getMaxRetry();
+        aiMaxRetrySeekBar.setProgress(maxRetry - 1); // SeekBar is 0-9, value is 1-10
+        aiMaxRetryValueText.setText(String.valueOf(maxRetry));
+        
+        updateFullApiPath();
+        
+        // Load saved model if exists
+        String savedModel = aiSettingsManager.getModel();
+        if (!savedModel.isEmpty()) {
+            modelAdapter.clear();
+            modelAdapter.add(savedModel);
+            modelAdapter.notifyDataSetChanged();
+            aiModelSpinner.setSelection(0);
+        }
+        
         developerModeSwitch.setChecked(settingsManager.isDeveloperMode());
 
         String backgroundUrl = settingsManager.getBackgroundUrl();
@@ -209,6 +420,18 @@ public class SettingsActivity extends BaseActivity {
     }
 
     private void saveSettings() {
+        // Save AI Settings
+        aiSettingsManager.setBaseUrl(aiBaseUrlInput.getText().toString().trim());
+        aiSettingsManager.setApiKey(aiApiKeyInput.getText().toString().trim());
+        
+        if (aiModelSpinner.getSelectedItem() != null) {
+            aiSettingsManager.setModel(aiModelSpinner.getSelectedItem().toString());
+        }
+        
+        aiSettingsManager.setTemperature(aiTemperatureSeekBar.getProgress() / 100.0f);
+        aiSettingsManager.setTopP(aiTopPSeekBar.getProgress() / 100.0f);
+        aiSettingsManager.setMaxRetry(aiMaxRetrySeekBar.getProgress() + 1); // SeekBar is 0-9, value is 1-10
+        
         settingsManager.setDeveloperMode(developerModeSwitch.isChecked());
         settingsManager.setBackgroundUrl(backgroundUrlInput.getText().toString());
         settingsManager.setBackgroundTransparency(transparencySeekBar.getProgress());

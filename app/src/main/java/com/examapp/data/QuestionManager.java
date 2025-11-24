@@ -183,6 +183,29 @@ public class QuestionManager {
             saveSubjects();
         }
     }
+    
+    /**
+     * 更新题目内容(用于AI处理)
+     */
+    public void updateQuestion(String subjectId, Question question) {
+        if (question == null || subjectId == null) return;
+        
+        Subject subject = subjects.get(subjectId);
+        if (subject != null && subject.getQuestions() != null) {
+            for (int i = 0; i < subject.getQuestions().size(); i++) {
+                Question q = subject.getQuestions().get(i);
+                if (q.getId().equals(question.getId())) {
+                    // 更新题目文本和解析
+                    q.setQuestionText(question.getQuestionText());
+                    if (question.getExplanation() != null) {
+                        q.setExplanation(question.getExplanation());
+                    }
+                    saveSubjects();
+                    break;
+                }
+            }
+        }
+    }
 
 
     public List<Question> getClonedQuestions(List<Question> originalQuestions) {

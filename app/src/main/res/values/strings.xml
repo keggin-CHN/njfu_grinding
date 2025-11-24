@@ -97,4 +97,24 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="wrong_analysis">错题分析</string>
+    <string name="ai_settings">AI答疑设置</string>
+    <string name="ai_base_url">Base URL</string>
+    <string name="ai_base_url_hint">例如: https://api.openai.com</string>
+    <string name="ai_api_key">API Key</string>
+    <string name="ai_api_key_hint">输入您的API密钥</string>
+    <string name="ai_model">模型</string>
+    <string name="ai_model_hint">选择AI模型</string>
+    <string name="ai_refresh_models">刷新模型列表</string>
+    <string name="ai_prompt">提示词</string>
+    <string name="ai_prompt_hint">自定义AI提示词</string>
+    <string name="ai_temperature">Temperature</string>
+    <string name="ai_top_p">Top-P</string>
+    <string name="ai_params_hint">建议不要修改以上参数</string>
+    <string name="ai_full_path">完整API路径</string>
+    <string name="ai_loading_models">正在获取模型列表...</string>
+    <string name="ai_ask">AI答疑</string>
+    <string name="ai_thinking">AI思考中...</string>
+    <string name="ai_error">AI错误</string>
+    <string name="ai_not_configured">请先在设置中配置AI参数</string>
+    <string name="ai_assistant">AI助手</string>
 </resources>

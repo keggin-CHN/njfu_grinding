@@ -8,6 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
+import android.widget.RadioButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -16,6 +20,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.examapp.data.QuestionImporter;
 import com.examapp.data.QuestionManager;
 import com.examapp.model.Subject;
+import com.examapp.service.AIProcessingService;
 
 import java.io.InputStream;
 
@@ -27,6 +32,13 @@ public class ImportActivity extends BaseActivity {
     private Button selectFileButton;
     private Button importButton;
     private ProgressBar progressBar;
+    private RadioGroup aiProcessRadioGroup;
+    private RadioButton radioNoAI;
+    private RadioButton radioFixQuestions;
+    private RadioButton radioBoth;
+    private SeekBar concurrencySeekBar;
+    private TextView concurrencyLabel;
+    private TextView aiProcessHint;
     private QuestionImporter questionImporter;
     private Uri selectedFileUri;
 
@@ -49,9 +61,41 @@ public class ImportActivity extends BaseActivity {
         selectFileButton = findViewById(R.id.select_file_button);
         importButton = findViewById(R.id.import_button);
         progressBar = findViewById(R.id.progress_bar);
+        
+        // AI处理选项
+        aiProcessRadioGroup = findViewById(R.id.ai_process_radio_group);
+        radioNoAI = findViewById(R.id.radio_no_ai);
+        radioFixQuestions = findViewById(R.id.radio_fix_questions);
+        radioBoth = findViewById(R.id.radio_both);
+        concurrencySeekBar = findViewById(R.id.concurrency_seekbar);
+        concurrencyLabel = findViewById(R.id.concurrency_label);
+        aiProcessHint = findViewById(R.id.ai_process_hint);
 
         selectFileButton.setOnClickListener(v -> openFilePicker());
         importButton.setOnClickListener(v -> importQuestions());
+        
+        // AI处理选项变化监听
+        aiProcessRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            boolean aiEnabled = checkedId != R.id.radio_no_ai;
+            concurrencySeekBar.setVisibility(aiEnabled ? android.view.View.VISIBLE : android.view.View.GONE);
+            concurrencyLabel.setVisibility(aiEnabled ? android.view.View.VISIBLE : android.view.View.GONE);
+            aiProcessHint.setVisibility(aiEnabled ? android.view.View.VISIBLE : android.view.View.GONE);
+        });
+        
+        // 并发数SeekBar监听
+        concurrencySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int concurrency = Math.max(1, progress); // 最小为1
+                concurrencyLabel.setText("并发处理数: " + concurrency);
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
     }
 
     private void openFilePicker() {
@@ -97,7 +141,33 @@ public class ImportActivity extends BaseActivity {
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     importButton.setEnabled(true);
-                    showImportSuccessDialog(subject.getTotalQuestions());
+                    
+                    // 检查是否需要AI处理
+                    int checkedId = aiProcessRadioGroup.getCheckedRadioButtonId();
+                    if (checkedId != R.id.radio_no_ai) {
+                        // 需要AI处理,启动后台服务
+                        int concurrency = Math.max(1, concurrencySeekBar.getProgress());
+                        boolean fixQuestions = checkedId == R.id.radio_fix_questions || checkedId == R.id.radio_both;
+                        boolean generateExplanations = checkedId == R.id.radio_both;
+                        
+                        // 启动AI处理服务
+                        Intent serviceIntent = new Intent(this, AIProcessingService.class);
+                        serviceIntent.putExtra(AIProcessingService.EXTRA_SUBJECT_ID, subject.getId());
+                        serviceIntent.putExtra(AIProcessingService.EXTRA_FIX_QUESTIONS, fixQuestions);
+                        serviceIntent.putExtra(AIProcessingService.EXTRA_GENERATE_EXPLANATIONS, generateExplanations);
+                        serviceIntent.putExtra(AIProcessingService.EXTRA_CONCURRENCY, concurrency);
+                        
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            startForegroundService(serviceIntent);
+                        } else {
+                            startService(serviceIntent);
+                        }
+                        
+                        Toast.makeText(this, "题库已导入,AI处理将在后台进行", Toast.LENGTH_LONG).show();
+                        finish();
+                    } else {
+                        showImportSuccessDialog(subject.getTotalQuestions());
+                    }
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {

@@ -86,6 +86,73 @@
                     android:inputType="textUri" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- AI处理选项 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AI处理选项"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/ai_process_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <RadioButton
+                    android:id="@+id/radio_no_ai"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="不使用AI处理"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radio_fix_questions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="仅修复题目" />
+
+                <RadioButton
+                    android:id="@+id/radio_both"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="修复题目并生成解析(原始题库仅含有答案，无解析)" />
+            </RadioGroup>
+
+            <!-- 并发数设置 -->
+            <TextView
+                android:id="@+id/concurrency_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="并发处理数: 5"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
+
+            <SeekBar
+                android:id="@+id/concurrency_seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="5"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/ai_process_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="提示: AI处理将在后台进行,您可以在主界面查看进度"
+                android:textSize="12sp"
+                android:textColor="@color/gray"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone" />
+
             <ProgressBar
                 android:id="@+id/progress_bar"
                 android:layout_width="match_parent"

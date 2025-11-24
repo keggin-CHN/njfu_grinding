@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -305,10 +306,17 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+    
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (drawerToggle != null && drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
+        
         return super.onOptionsItemSelected(item);
     }
 
