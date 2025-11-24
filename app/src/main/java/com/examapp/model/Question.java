@@ -27,12 +27,12 @@ public class Question implements Serializable {
         this.explanation = other.explanation;
         this.category = other.category;
         this.isWrong = other.isWrong;
-        this.userAnswer = null; // 在新会话中重置用户答案
+        this.userAnswer = other.userAnswer; // 保留用户答案以便在侧边栏显示状态
         this.index = other.index;
         this.type = other.type;
         this.relativeId = other.relativeId;
         this.wrongAnswerCount = other.wrongAnswerCount;
-        this.answerState = AnswerState.UNANSWERED; // 在新会话中重置状态
+        this.answerState = other.answerState; // 保留答题状态以便在侧边栏显示
     }
 
     public enum AnswerState {
