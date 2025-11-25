@@ -119,7 +119,7 @@ njfu_exam_app-main/
 ## 📊 题库爬虫
 
 基于 Selenium 的自动化题库爬虫工具,用于从南林考试系统抓取题目数据,并进行数据分析和可视化。
-
+最终输出结果包含题库的题目，选项与答案。
 ### 使用方法
 
 #### 1. 环境准备
@@ -213,8 +213,7 @@ python scraper.py
   
 - 🤖 **AI智能助手**
   - 支持多个AI服务商(ChatGLM, Claude, DeepSeek, Gemini, Grok, Ollama, OpenAI, Qwen)
-  - 智能题目解析
-  - 个性化学习建议
+  - 用于个性化学习建议与答疑
   
 - 📊 **学习数据分析**
   - 答题历史记录
