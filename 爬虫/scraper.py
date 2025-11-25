@@ -22,6 +22,8 @@ LOOP_COUNT = 50
 BASE_URL = "http://202.119.208.106"
 HEADLESS = False  # 设置为 True 启用无头模式（看不到浏览器窗口）
 USE_EDGE = True   # 设置为 True 使用 Edge 浏览器，False 使用 Chrome
+# WebDriver 获取策略: 'auto' (自动尝试所有), 'manager' (仅 webdriver-manager), 'system' (仅系统路径), 'local' (仅本地文件)
+DRIVER_STRATEGY = 'system'
 # --- 宏定义结束 ---
 
 QUESTION_BANK_FILE = 'question_bank.json'
@@ -106,28 +108,30 @@ def create_driver():
     options.add_argument('--window-size=1920,1080')
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
+    options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
     driver = None
     if USE_EDGE:
-        try:
-            from selenium.webdriver.edge.service import Service
-            from webdriver_manager.microsoft import EdgeChromiumDriverManager
-            print("  尝试使用 webdriver-manager 自动管理 EdgeDriver...")
-            service = Service(EdgeChromiumDriverManager().install())
-            driver = webdriver.Edge(service=service, options=options)
-            print("  ✓ 使用 webdriver-manager 成功")
-        except ImportError:
-            print("  ⚠️ webdriver-manager 未安装，尝试其他方法...")
-            print("  提示: 运行 'pip install webdriver-manager' 可自动管理 EdgeDriver")
-        except Exception as e:
-            print(f"  ⚠️ webdriver-manager 失败: {e}")
-        if driver is None:
+        if DRIVER_STRATEGY in ['auto', 'manager']:
+            try:
+                from selenium.webdriver.edge.service import Service
+                from webdriver_manager.microsoft import EdgeChromiumDriverManager
+                print("  尝试使用 webdriver-manager 自动管理 EdgeDriver...")
+                service = Service(EdgeChromiumDriverManager().install())
+                driver = webdriver.Edge(service=service, options=options)
+                print("  ✓ 使用 webdriver-manager 成功")
+            except ImportError:
+                print("  ⚠️ webdriver-manager 未安装，尝试其他方法...")
+                print("  提示: 运行 'pip install webdriver-manager' 可自动管理 EdgeDriver")
+            except Exception as e:
+                print(f"  ⚠️ webdriver-manager 失败: {e}")
+        if driver is None and DRIVER_STRATEGY in ['auto', 'system']:
             try:
                 print("  尝试使用系统内置的 EdgeDriver...")
                 driver = webdriver.Edge(options=options)
                 print("  ✓ 使用系统 EdgeDriver 成功")
             except Exception as e:
                 print(f"  ⚠️ 系统 EdgeDriver 失败: {e}")
-        if driver is None:
+        if driver is None and DRIVER_STRATEGY in ['auto', 'local']:
             try:
                 from selenium.webdriver.edge.service import Service
                 local_driver_path = os.path.join(os.path.dirname(__file__), 'msedgedriver.exe')
@@ -137,30 +141,32 @@ def create_driver():
                     driver = webdriver.Edge(service=service, options=options)
                     print("  ✓ 使用本地 EdgeDriver 成功")
                 else:
-                    print(f"  ⚠️ 本地未找到 msedgedriver.exe")
+                    if DRIVER_STRATEGY == 'local':
+                        print(f"  ⚠️ 本地未找到 msedgedriver.exe")
             except Exception as e:
                 print(f"  ⚠️ 本地 EdgeDriver 失败: {e}")
     else:
-        try:
-            from selenium.webdriver.chrome.service import Service
-            from webdriver_manager.chrome import ChromeDriverManager
-            print("  尝试使用 webdriver-manager 自动管理 ChromeDriver...")
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=options)
-            print("  ✓ 使用 webdriver-manager 成功")
-        except ImportError:
-            print("  ⚠️ webdriver-manager 未安装，尝试其他方法...")
-            print("  提示: 运行 'pip install webdriver-manager' 可自动管理 ChromeDriver")
-        except Exception as e:
-            print(f"  ⚠️ webdriver-manager 失败: {e}")
-        if driver is None:
+        if DRIVER_STRATEGY in ['auto', 'manager']:
+            try:
+                from selenium.webdriver.chrome.service import Service
+                from webdriver_manager.chrome import ChromeDriverManager
+                print("  尝试使用 webdriver-manager 自动管理 ChromeDriver...")
+                service = Service(ChromeDriverManager().install())
+                driver = webdriver.Chrome(service=service, options=options)
+                print("  ✓ 使用 webdriver-manager 成功")
+            except ImportError:
+                print("  ⚠️ webdriver-manager 未安装，尝试其他方法...")
+                print("  提示: 运行 'pip install webdriver-manager' 可自动管理 ChromeDriver")
+            except Exception as e:
+                print(f"  ⚠️ webdriver-manager 失败: {e}")
+        if driver is None and DRIVER_STRATEGY in ['auto', 'system']:
             try:
                 print("  尝试使用系统 PATH 中的 ChromeDriver...")
                 driver = webdriver.Chrome(options=options)
                 print("  ✓ 使用系统 ChromeDriver 成功")
             except Exception as e:
                 print(f"  ⚠️ 系统 ChromeDriver 失败: {e}")
-        if driver is None:
+        if driver is None and DRIVER_STRATEGY in ['auto', 'local']:
             try:
                 from selenium.webdriver.chrome.service import Service
                 local_driver_path = os.path.join(os.path.dirname(__file__), 'chromedriver.exe')
@@ -170,7 +176,8 @@ def create_driver():
                     driver = webdriver.Chrome(service=service, options=options)
                     print("  ✓ 使用本地 ChromeDriver 成功")
                 else:
-                    print(f"  ⚠️ 本地未找到 chromedriver.exe")
+                    if DRIVER_STRATEGY == 'local':
+                        print(f"  ⚠️ 本地未找到 chromedriver.exe")
             except Exception as e:
                 print(f"  ⚠️ 本地 ChromeDriver 失败: {e}")
     if driver is None:
@@ -231,7 +238,6 @@ def login_with_browser(driver, username, password):
         print("步骤 3/6: 点击登录按钮...")
         login_button = driver.find_element(By.CSS_SELECTOR, "button[id*='login']")
         login_button.click()
-        time.sleep(0.5)
         wait.until(lambda d: "Default.jspx" in d.current_url or "ExamCase" in d.current_url or len(d.current_url) > len(BASE_URL) + 10)
         print(f"当前URL: {driver.current_url}")
         if "Default.jspx" in driver.current_url or "talk" in driver.current_url:
@@ -261,7 +267,6 @@ def auto_exam_process(driver):
             print("✅ 发现'开始考试'按钮，点击开始...")
             driver.execute_script("arguments[0].scrollIntoView(true);", start_button)
             start_button.click()
-            time.sleep(0.5)
             print("已点击'开始考试'")
         except Exception as e:
             print("ℹ️ 未发现'开始考试'弹窗，可能已经在考试页面")
@@ -269,7 +274,6 @@ def auto_exam_process(driver):
         wait.until(EC.presence_of_element_located((By.ID, "myForm")))
         print("✅ 考试页面已加载")
         print("步骤 5/6: 提交试卷...")
-        time.sleep(0.2)
         submit_success = False
         try:
             submit_button = driver.find_element(By.ID, "myForm:subcase")
@@ -304,39 +308,55 @@ def auto_exam_process(driver):
         if not submit_success:
             print("❌ 所有提交方法都失败了")
             return None
-        time.sleep(0.5)
         try:
             confirm_button = WebDriverWait(driver, 2).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), '提交') or contains(text(), '确定')]"))
             )
             confirm_button.click()
             print("✅ 已点击确认提交对话框")
-            time.sleep(0.5)
         except:
             print("ℹ️ 没有确认对话框或已自动提交")
         print("等待跳转到报告页面...")
-        max_wait = 15
-        start_time = time.time()
-        while time.time() - start_time < max_wait:
+        wait = WebDriverWait(driver, 15)
+        try:
+            # 等待页面跳转到结果页或最终报告页
+            wait.until(
+                EC.any_of(
+                    EC.url_contains("ExamCaseResult.jspx"),
+                    EC.url_contains("ExamCaseReport"),
+                    EC.url_contains("Report")
+                )
+            )
+
             current_url = driver.current_url
+            # 如果当前是结果页，尝试点击“查看详情”
             if "ExamCaseResult.jspx" in current_url:
                 try:
-                    view_details_btn = driver.find_element(By.XPATH, "//button[contains(., '查看详情')]")
-                    if view_details_btn.is_displayed():
-                        print("✅ 发现'查看详情'按钮，点击进入报告页面...")
-                        view_details_btn.click()
-                        time.sleep(0.5)
-                        continue
-                except:
-                    pass
-            if "ExamCaseReport" in current_url or "Report" in current_url:
-                print(f"✅ 步骤 6/6: 成功进入报告页面!")
-                time.sleep(1)
-                return driver.page_source
-            time.sleep(0.5)
-        print("❌ 等待超时，未能跳转到报告页面")
-        print(f"最终URL: {driver.current_url}")
-        return None
+                    # 等待“查看详情”按钮出现并可点击
+                    view_details_btn = wait.until(
+                        EC.element_to_be_clickable((By.XPATH, "//button[contains(., '查看详情')]"))
+                    )
+                    print("✅ 发现'查看详情'按钮，点击进入报告页面...")
+                    view_details_btn.click()
+                    # 点击后，再次等待跳转到最终报告页
+                    wait.until(
+                        EC.any_of(
+                            EC.url_contains("ExamCaseReport"),
+                            EC.url_contains("Report")
+                        )
+                    )
+                except Exception:
+                    # 如果找不到按钮或跳转失败，也没关系，可能当前页面已包含足够信息
+                    print("ℹ️  在结果页上未找到'查看详情'按钮或点击后未跳转，尝试直接解析当前页")
+
+            print(f"✅ 步骤 6/6: 成功进入报告页面!")
+            return driver.page_source
+
+        except Exception:
+            # 如果15秒内上述任何一个URL都没有出现，则超时
+            print("❌ 等待超时，未能跳转到报告页面")
+            print(f"最终URL: {driver.current_url}")
+            return None
     except Exception as e:
         print(f"❌ 自动化考试流程出错: {e}")
         import traceback
@@ -449,9 +469,9 @@ def plot_results(history):
                          ha='left', va='center', fontsize=18, fontweight='bold', color=color)
     if len(history['total']) > 1:
         growth = history['total'][-1] - history['total'][0]
-        plt.title(f'题库增长趋势 (总增长: {growth} 题)', fontsize=26, fontweight='bold', pad=20)
+        plt.title(f'习概题库爬取 (总增长: {growth} 题)', fontsize=26, fontweight='bold', pad=20)
     else:
-        plt.title('题库增长趋势', fontsize=26, fontweight='bold', pad=20)
+        plt.title('习概题库爬取', fontsize=26, fontweight='bold', pad=20)
     plt.xlabel('循环次数', fontsize=22, labelpad=15)
     plt.ylabel('题目数量', fontsize=22, labelpad=15)
     plt.grid(True, which='major', linestyle='-', linewidth=1.5, alpha=0.6, color='gray')
@@ -505,7 +525,6 @@ def main():
                     if not login_with_browser(driver, USERNAME, PASSWORD):
                         print("❌ 登录失败，终止程序")
                         break
-                    time.sleep(1)
                 else:
                     print("ℹ️  使用已有登录会话...")
                 report_html = auto_exam_process(driver)
@@ -545,9 +564,7 @@ def main():
                         print("  - 或设置 USE_EDGE = False 改用 Chrome")
                     break
             if i < LOOP_COUNT:
-                wait_time = 1
-                print(f"\n⏸️  暂停 {wait_time} 秒，准备下一次循环...")
-                time.sleep(wait_time)
+                print(f"\n🚀 准备下一次循环...")
     finally:
         if driver:
             print("\n🔒 正在关闭浏览器...")
