@@ -45,6 +45,16 @@ import com.canhub.cropper.CropImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 
+/**
+ * @deprecated 此Activity已被拆分为多个独立的设置页面：
+ * - AISettingsActivity: AI答疑设置
+ * - BackgroundSettingsActivity: 背景设置
+ * - DeveloperModeActivity: 开发者模式
+ * - AboutActivity: 关于
+ *
+ * 保留此文件仅为兼容性考虑，建议使用上述独立的Activity。
+ */
+@Deprecated
 public class SettingsActivity extends BaseActivity {
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     private static final int PERMISSION_REQUEST_CODE = 201;

@@ -67,6 +67,22 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".AISettingsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".BackgroundSettingsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".DeveloperModeActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".AboutActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".StudyModeActivity"
             android:screenOrientation="portrait" />
 

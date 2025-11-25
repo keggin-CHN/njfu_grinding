@@ -82,6 +82,12 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         NavigationView navigationView = findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // 设置底部题库链接点击事件
+        TextView navFooterLink = navigationView.findViewById(R.id.nav_footer_link);
+        if (navFooterLink != null) {
+            navFooterLink.setOnClickListener(v -> openQuestionBankLink());
+        }
+
         drawerToggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
@@ -282,14 +288,28 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         int itemId = item.getItemId();
         if (itemId == R.id.nav_import) {
             startActivity(new Intent(this, ImportActivity.class));
-        } else if (itemId == R.id.nav_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
+        } else if (itemId == R.id.nav_ai_settings) {
+            startActivity(new Intent(this, AISettingsActivity.class));
+        } else if (itemId == R.id.nav_background_settings) {
+            startActivity(new Intent(this, BackgroundSettingsActivity.class));
         } else if (itemId == R.id.nav_developer_mode) {
             settingsManager.setDeveloperMode(!settingsManager.isDeveloperMode());
-            Toast.makeText(this, settingsManager.isDeveloperMode() ? "开发者模式已启用" : "开发者模式已禁用", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, settingsManager.isDeveloperMode() ? "调试日志输出已开启" : "调试日志输出已关闭", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.nav_about) {
+            startActivity(new Intent(this, AboutActivity.class));
         }
         drawerLayout.closeDrawers();
         return true;
+    }
+
+    private void openQuestionBankLink() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(android.net.Uri.parse("https://github.com/keggin-CHN/njfu_grinding/tree/main/%E9%A2%98%E5%BA%93%E6%94%B6%E9%9B%86"));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "无法打开链接", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

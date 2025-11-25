@@ -6,14 +6,22 @@
         android:title="@string/import_questions" />
 
     <item
-        android:id="@+id/nav_settings"
-        android:icon="@android:drawable/ic_menu_preferences"
-        android:title="@string/settings" />
+        android:id="@+id/nav_ai_settings"
+        android:icon="@drawable/ic_ai_assistant"
+        android:title="API接口设置" />
+
+    <item
+        android:id="@+id/nav_background_settings"
+        android:icon="@drawable/ic_background"
+        android:title="背景设置" />
 
     <item
         android:id="@+id/nav_developer_mode"
-        android:icon="@android:drawable/ic_menu_info_details"
+        android:icon="@drawable/ic_developer"
         android:title="开发者模式" />
 
-
+    <item
+        android:id="@+id/nav_about"
+        android:icon="@drawable/ic_about"
+        android:title="关于" />
 </menu>
