@@ -271,7 +271,7 @@ python scraper.py
 开发不易，如果本项目对你有帮助，欢迎 Star ⭐，也欢迎投喂 (๑• . •๑)♡
 
 <div align="center">
-  <img src="https://github.com/keggin-CHN/njfu_grinding/blob/main/3B7FBA4EFAB7A4B08D4F46080F8DED8D.jpg?raw=true" width="300" />
+  <img src="figures/3B7FBA4EFAB7A4B08D4F46080F8DED8D.jpg?raw=true" width="300" />
   <p><i>微信赞赏码</i></p>
 </div>
 
