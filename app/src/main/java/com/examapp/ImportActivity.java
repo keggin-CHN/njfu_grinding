@@ -34,8 +34,6 @@ public class ImportActivity extends BaseActivity {
     private ProgressBar progressBar;
     private RadioGroup aiProcessRadioGroup;
     private RadioButton radioNoAI;
-    private RadioButton radioFixQuestions;
-    private RadioButton radioBoth;
     private SeekBar concurrencySeekBar;
     private TextView concurrencyLabel;
     private TextView aiProcessHint;
@@ -65,8 +63,7 @@ public class ImportActivity extends BaseActivity {
         // AI处理选项
         aiProcessRadioGroup = findViewById(R.id.ai_process_radio_group);
         radioNoAI = findViewById(R.id.radio_no_ai);
-        radioFixQuestions = findViewById(R.id.radio_fix_questions);
-        radioBoth = findViewById(R.id.radio_both);
+        RadioButton radioGenerateExplanations = findViewById(R.id.radio_generate_explanations);
         concurrencySeekBar = findViewById(R.id.concurrency_seekbar);
         concurrencyLabel = findViewById(R.id.concurrency_label);
         aiProcessHint = findViewById(R.id.ai_process_hint);
@@ -144,17 +141,15 @@ public class ImportActivity extends BaseActivity {
                     
                     // 检查是否需要AI处理
                     int checkedId = aiProcessRadioGroup.getCheckedRadioButtonId();
-                    if (checkedId != R.id.radio_no_ai) {
-                        // 需要AI处理,启动后台服务
+                    if (checkedId == R.id.radio_generate_explanations) {
+                        // 需要生成AI解析,启动后台服务
                         int concurrency = Math.max(1, concurrencySeekBar.getProgress());
-                        boolean fixQuestions = checkedId == R.id.radio_fix_questions || checkedId == R.id.radio_both;
-                        boolean generateExplanations = checkedId == R.id.radio_both;
                         
-                        // 启动AI处理服务
+                        // 启动AI处理服务 - 只生成解析,不修复题目
                         Intent serviceIntent = new Intent(this, AIProcessingService.class);
                         serviceIntent.putExtra(AIProcessingService.EXTRA_SUBJECT_ID, subject.getId());
-                        serviceIntent.putExtra(AIProcessingService.EXTRA_FIX_QUESTIONS, fixQuestions);
-                        serviceIntent.putExtra(AIProcessingService.EXTRA_GENERATE_EXPLANATIONS, generateExplanations);
+                        serviceIntent.putExtra(AIProcessingService.EXTRA_FIX_QUESTIONS, false);
+                        serviceIntent.putExtra(AIProcessingService.EXTRA_GENERATE_EXPLANATIONS, true);
                         serviceIntent.putExtra(AIProcessingService.EXTRA_CONCURRENCY, concurrency);
                         
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -163,7 +158,7 @@ public class ImportActivity extends BaseActivity {
                             startService(serviceIntent);
                         }
                         
-                        Toast.makeText(this, "题库已导入,AI处理将在后台进行", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "题库已导入,AI解析生成将在后台进行", Toast.LENGTH_LONG).show();
                         finish();
                     } else {
                         showImportSuccessDialog(subject.getTotalQuestions());

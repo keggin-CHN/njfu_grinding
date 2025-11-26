@@ -47,6 +47,16 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
         notifyDataSetChanged();
     }
 
+    public void moveItem(int fromPosition, int toPosition) {
+        Subject subject = subjects.remove(fromPosition);
+        subjects.add(toPosition, subject);
+        notifyItemMoved(fromPosition, toPosition);
+    }
+
+    public List<Subject> getSubjects() {
+        return subjects;
+    }
+
     @NonNull
     @Override
     public SubjectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

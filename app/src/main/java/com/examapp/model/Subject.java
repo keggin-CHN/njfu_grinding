@@ -16,8 +16,10 @@ public class Subject implements Serializable {
     private int sequentialLastPosition;
     private int reviewLastPosition;
     private int wrongReviewLastPosition;
+    private int sortOrder; // 排序顺序
 
     public Subject() {
+        this.sortOrder = 0;
     }
 
     public Subject(String id, String name) {
@@ -127,5 +129,13 @@ public class Subject implements Serializable {
 
     public void setWrongReviewLastPosition(int wrongReviewLastPosition) {
         this.wrongReviewLastPosition = wrongReviewLastPosition;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

@@ -20,6 +20,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.core.view.GravityCompat;
 
 import com.examapp.adapter.SubjectAdapter;
@@ -124,6 +125,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
         subjectRecyclerView = findViewById(R.id.subject_recycler_view);
         subjectRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        setupItemTouchHelper();
         emptyStateLayout = findViewById(R.id.empty_state_layout);
         hitokotoText = findViewById(R.id.hitokoto_text);
         studyModeButton = findViewById(R.id.study_mode_button);
@@ -178,9 +180,53 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         hitokotoHandler.removeCallbacks(hitokotoRefreshRunnable);
     }
 
+    private void setupItemTouchHelper() {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+            
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                @NonNull RecyclerView.ViewHolder viewHolder,
+                                @NonNull RecyclerView.ViewHolder target) {
+                int fromPosition = viewHolder.getAdapterPosition();
+                int toPosition = target.getAdapterPosition();
+                
+                if (subjectAdapter != null) {
+                    subjectAdapter.moveItem(fromPosition, toPosition);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // 不处理滑动
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView,
+                                @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                // 拖动结束后保存新的顺序
+                if (subjectAdapter != null) {
+                    questionManager.updateSubjectOrder(subjectAdapter.getSubjects());
+                }
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true; // 启用长按拖动
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(subjectRecyclerView);
+    }
+
     private void loadSubjects() {
+        // 使用排序后的题库列表
+        List<Subject> subjects = questionManager.getAllSubjectsSorted();
         Map<String, Subject> subjectsMap = questionManager.getAllSubjects();
-        List<Subject> subjects = new ArrayList<>(subjectsMap.values());
 
         if (selectedSubjectId != null && !subjectsMap.containsKey(selectedSubjectId)) {
             selectedSubjectId = null;
@@ -295,6 +341,8 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         } else if (itemId == R.id.nav_developer_mode) {
             settingsManager.setDeveloperMode(!settingsManager.isDeveloperMode());
             Toast.makeText(this, settingsManager.isDeveloperMode() ? "调试日志输出已开启" : "调试日志输出已关闭", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.nav_share) {
+            shareApp();
         } else if (itemId == R.id.nav_about) {
             startActivity(new Intent(this, AboutActivity.class));
         }
@@ -302,6 +350,45 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         return true;
     }
 
+    private void shareApp() {
+        try {
+            // 获取APK文件路径
+            String packageName = getPackageName();
+            android.content.pm.PackageManager pm = getPackageManager();
+            android.content.pm.ApplicationInfo appInfo = pm.getApplicationInfo(packageName, 0);
+            String apkPath = appInfo.sourceDir;
+            
+            // 创建文件Uri
+            java.io.File apkFile = new java.io.File(apkPath);
+            android.net.Uri apkUri;
+            
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                // Android 7.0及以上使用FileProvider
+                apkUri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    packageName + ".fileprovider",
+                    apkFile
+                );
+            } else {
+                apkUri = android.net.Uri.fromFile(apkFile);
+            }
+            
+            // 创建分享Intent
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("application/vnd.android.package-archive");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, apkUri);
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "NJFU刷题助手");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "分享NJFU刷题助手APK");
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            
+            // 启动分享选择器
+            startActivity(Intent.createChooser(shareIntent, "分享APK"));
+        } catch (Exception e) {
+            Toast.makeText(this, "分享失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+    
     private void openQuestionBankLink() {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);

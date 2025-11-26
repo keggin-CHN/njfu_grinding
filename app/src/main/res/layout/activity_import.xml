@@ -106,20 +106,14 @@
                     android:id="@+id/radio_no_ai"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="不使用AI处理"
+                    android:text="不进行任何处理"
                     android:checked="true" />
 
                 <RadioButton
-                    android:id="@+id/radio_fix_questions"
+                    android:id="@+id/radio_generate_explanations"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="仅修复题目" />
-
-                <RadioButton
-                    android:id="@+id/radio_both"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="修复题目并生成解析(原始题库仅含有答案，无解析)" />
+                    android:text="后台生成AI解析（原始题库仅包含答案）" />
             </RadioGroup>
 
             <!-- 并发数设置 -->

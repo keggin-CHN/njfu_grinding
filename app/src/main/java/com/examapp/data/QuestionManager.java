@@ -70,6 +70,22 @@ public class QuestionManager {
         return new HashMap<>(subjects);
     }
 
+    public List<Subject> getAllSubjectsSorted() {
+        List<Subject> subjectList = new ArrayList<>(subjects.values());
+        // 按sortOrder排序
+        subjectList.sort((s1, s2) -> Integer.compare(s1.getSortOrder(), s2.getSortOrder()));
+        return subjectList;
+    }
+
+    public void updateSubjectOrder(List<Subject> orderedSubjects) {
+        for (int i = 0; i < orderedSubjects.size(); i++) {
+            Subject subject = orderedSubjects.get(i);
+            subject.setSortOrder(i);
+            subjects.put(subject.getId(), subject);
+        }
+        saveSubjects();
+    }
+
     public void updateSubjectDisplayName(String subjectId, String displayName) {
         Subject subject = subjects.get(subjectId);
         if (subject != null) {
