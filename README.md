@@ -1,14 +1,14 @@
-&lt;p align="center"&gt;
-  &lt;a href="https://github.com/keggin-CHN/njfu_grinding"&gt;
-    &lt;img src="https://img.shields.io/github/stars/keggin-CHN/njfu_grinding?style=social" alt="Stars"&gt;
-  &lt;/a&gt;
-  &lt;a href="https://github.com/keggin-CHN/njfu_grinding"&gt;
-    &lt;img src="https://img.shields.io/github/forks/keggin-CHN/njfu_grinding?style=social" alt="Forks"&gt;
-  &lt;/a&gt;
-  &lt;a href="https://github.com/keggin-CHN/njfu_grinding/issues"&gt;
-    &lt;img src="https://img.shields.io/github/issues/keggin-CHN/njfu_grinding" alt="Issues"&gt;
-  &lt;/a&gt;
-&lt;/p&gt;
+<p align="center">
+    <a href="https://github.com/keggin-CHN/njfu_grinding">
+        <img alt="Stars" src="https://img.shields.io/github/stars/keggin-CHN/njfu_grinding?style=social"/>
+    </a>
+    <a href="https://github.com/keggin-CHN/njfu_grinding">
+        <img alt="Forks" src="https://img.shields.io/github/forks/keggin-CHN/njfu_grinding?style=social"/>
+    </a>
+    <a href="https://github.com/keggin-CHN/njfu_grinding/issues">
+        <img alt="Issues" src="https://img.shields.io/github/issues/keggin-CHN/njfu_grinding"/>
+    </a>
+</p>
 
 # 南京林业大学马院刷题系统
 如果本项目对你有帮助，请点个 Star ⭐。(づ｡◕‿‿◕｡)づ
