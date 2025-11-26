@@ -1,3 +1,15 @@
+&lt;p align="center"&gt;
+  &lt;a href="https://github.com/keggin-CHN/njfu_grinding"&gt;
+    &lt;img src="https://img.shields.io/github/stars/keggin-CHN/njfu_grinding?style=social" alt="Stars"&gt;
+  &lt;/a&gt;
+  &lt;a href="https://github.com/keggin-CHN/njfu_grinding"&gt;
+    &lt;img src="https://img.shields.io/github/forks/keggin-CHN/njfu_grinding?style=social" alt="Forks"&gt;
+  &lt;/a&gt;
+  &lt;a href="https://github.com/keggin-CHN/njfu_grinding/issues"&gt;
+    &lt;img src="https://img.shields.io/github/issues/keggin-CHN/njfu_grinding" alt="Issues"&gt;
+  &lt;/a&gt;
+&lt;/p&gt;
+
 # 南京林业大学马院刷题系统
 如果本项目对你有帮助，请点个 Star ⭐。(づ｡◕‿‿◕｡)づ
 
@@ -161,14 +173,14 @@ python scraper.py
 爬虫运行完成后,会自动生成数据分析报告和可视化图表:
 
 <div align="center">
-  <img src="image-UGxV.png" width="85%" />
+  <img src="figures/image-UGxV.png" width="85%" />
   <p><i>爬虫运行过程 - 实时显示抓取进度和统计信息</i></p>
 </div>
 
 <br>
 
 <div align="center">
-  <img src="Figure_1-EThj.png" width="85%" />
+  <img src="figures/Figure_1-EThj.png" width="85%" />
   <p><i>题库增长趋势图 - 展示各类题目数量随循环次数的变化</i></p>
 </div>
 
@@ -199,8 +211,8 @@ python scraper.py
 一款功能强大的Android刷题应用,支持多种学习模式和AI智能助手功能。
 
 <div align="center">
-  <img src="0FF13D0949F9F476CDAF67C439CA78BA.jpg" width="40%" style="margin: 10px;" />
-  <img src="B36DDECF6BDFE1044FF6AC230898166E.jpg" width="40%" style="margin: 10px;" />
+  <img src="figures/0FF13D0949F9F476CDAF67C439CA78BA.jpg" width="40%" style="margin: 10px;" />
+  <img src="figures/B36DDECF6BDFE1044FF6AC230898166E.jpg" width="40%" style="margin: 10px;" />
   <p><i>应用界面展示</i></p>
 </div>
 
