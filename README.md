@@ -15,9 +15,11 @@
 
 BUG问题可提交issue，也可联系本人: admin@mail.keggin.me
 
-最新版刷题安卓APP下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/APP/NJFU.grinding.apk
+最新版刷题安卓APP下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/all/NJFU.grinding.apk ；
 
-本项目包含两个主要部分：题库爬虫和Android刷题应用。
+最新版windows PC版下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/all/NJFU.grinding.rar （下载完成后解压运行exe）
+
+本项目包含三个主要部分：题库爬虫、Android刷题应用和桌面端刷题应用。
 
 ## ⚠️ 使用声明
 
@@ -60,6 +62,22 @@ njfu_grinding-main/
 │   │   └── AndroidManifest.xml            # 应用清单文件
 │   │
 │   └── build.gradle                       # 应用构建配置
+│
+├── desktop/                                # 桌面应用源码 (JavaFX)
+│   ├── src/main/
+│   │   ├── java/com/examapp/              # Java源代码
+│   │   │   ├── controller/              # FXML控制器
+│   │   │   ├── data/                      # 数据管理
+│   │   │   ├── model/                     # 数据模型
+│   │   │   ├── service/                   # 后台服务
+│   │   │   └── util/                      # 工具类
+│   │   │
+│   │   └── resources/                     # 资源文件
+│   │       ├── fxml/                      # FXML布局文件
+│   │       ├── images/                    # 图片资源
+│   │       └── css/                       # 样式表
+│   │
+│   └── pom.xml                            # Maven项目配置
 │
 ├── figures/                                # 项目截图
 │
@@ -204,14 +222,29 @@ python scraper.py
 
 ---
 
-## 🚀 快速开始
+## 🖥️ 桌面端刷题应用
 
-### Android应用安装
+桌面版刷题应用，提供与移动端相似的体验，方便在PC上进行学习和刷题。
 
-1. 使用Android Studio打开项目
-2. 同步Gradle依赖
-3. 连接Android设备或启动模拟器
-4. 点击运行按钮
+<div align="center">
+  <img src="figures/QQ20251129-195856.png" width="85%" />
+  <p><i>桌面端主界面</i></p>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="figures/QQ20251129-195812.png" width="85%" />
+  <p><i>桌面端于安卓端的同步界面</i></p>
+</div>
+
+### 核心功能
+- 🔄 **数据同步**: 与移动端数据云同步
+- ⌨️ **高效操作**: 支持键盘快捷键
+- 🎨 **界面优化**: 适配大屏幕，提供更佳阅读体验
+
+---
+
 
 ## 💖 支持项目
 
