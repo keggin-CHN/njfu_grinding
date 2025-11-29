@@ -145,29 +145,6 @@ public class SyncServer {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                  PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
-                // Authorization Step
-                String authCode = String.format("%06d", new Random().nextInt(999999));
-                LogManager.info("Generated Auth Code for " + clientSocket.getInetAddress() + ": " + authCode);
-                final String finalAuthCode = authCode;
-                javafx.application.Platform.runLater(() -> callback.onAuthCodeGenerated(finalAuthCode));
-
-                // Set a timeout for authorization
-                clientSocket.setSoTimeout((int) TimeUnit.SECONDS.toMillis(60));
-
-                // Notify the client that authorization is required
-                writer.println("AUTH_REQUIRED");
-
-                String clientAuthCode = reader.readLine();
-                if (clientAuthCode == null || !clientAuthCode.equals(authCode)) {
-                    writer.println("AUTH_FAILURE");
-                    LogManager.warning("Auth failed for " + clientSocket.getInetAddress() + ". Sent: " + clientAuthCode + ", Expected: " + authCode);
-                    return; // Close connection
-                }
-
-                writer.println("AUTH_SUCCESS");
-                LogManager.info("Auth success for " + clientSocket.getInetAddress());
-                clientSocket.setSoTimeout(0); // Reset timeout
-
                 // 1. Read data from client
                 javafx.application.Platform.runLater(() -> callback.onSyncProgress("正在从客户端接收数据..."));
                 String jsonFromClient = reader.readLine();
