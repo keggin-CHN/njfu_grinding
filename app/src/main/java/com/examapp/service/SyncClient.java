@@ -138,96 +138,52 @@ public class SyncClient {
 
                 mainHandler.post(callback::onConnectionEstablished);
 
-                // Wait for server's AUTH_REQUIRED message
-                String serverResponse = reader.readLine();
-                if (!"AUTH_REQUIRED".equals(serverResponse)) {
-                    throw new IOException("Unexpected server response: " + serverResponse);
+                // Directly proceed with sync after connection
+                Log.d(TAG, "Connection established, starting sync process.");
+                // 1. Get local data and send to server
+                mainHandler.post(() -> callback.onSyncProgress("正在发送本地数据..."));
+                QuestionManager qm = QuestionManager.getInstance(context);
+                List<Subject> localSubjects = qm.getSubjects();
+                List<ExamHistoryEntry> localHistory = qm.getExamHistoryEntries();
+                SyncData localData = new SyncData(localSubjects, localHistory);
+                Gson gson = new Gson();
+                String jsonToServer = gson.toJson(localData);
+                writer.println(jsonToServer);
+                Log.d(TAG, "Sent local data to server.");
+
+                // 2. Receive merged data from server
+                mainHandler.post(() -> callback.onSyncProgress("正在接收合并后的数据..."));
+                String jsonFromServer = reader.readLine();
+                if (jsonFromServer == null) {
+                    throw new IOException("Server closed connection unexpectedly.");
+                }
+                Type syncDataType = new TypeToken<SyncData>() {}.getType();
+                SyncData mergedData = gson.fromJson(jsonFromServer, syncDataType);
+                Log.d(TAG, "Received merged data from server.");
+
+                // Recalculate stats on the client side to ensure data consistency
+                if (mergedData != null && mergedData.getSubjects() != null) {
+                    for (Subject subject : mergedData.getSubjects()) {
+                        subject.recalculateStats();
+                    }
                 }
 
-                // Auth is required, get code from user via callback
-                mainHandler.post(this::requestAuthCodeAndProceed);
+                // 3. Save merged data
+                mainHandler.post(() -> callback.onSyncProgress("正在更新本地数据..."));
+                java.util.Map<String, Subject> mergedSubjectsMap = mergedData.getSubjects().stream()
+                        .collect(java.util.stream.Collectors.toMap(Subject::getId, java.util.function.Function.identity()));
+                qm.replaceAllSubjects(mergedSubjectsMap);
+                qm.replaceAllHistory(mergedData.getExamHistory());
+                Log.d(TAG, "Saved merged data locally.");
 
+                mainHandler.post(callback::onSyncCompleted);
+                cleanup();
             } catch (Exception e) { // Catch Exception to include InterruptedException
                 Log.e(TAG, "Connection or Sync failed", e);
                 mainHandler.post(() -> callback.onError("同步失败: " + e.getMessage()));
                 cleanup();
             }
         });
-    }
-
-    private void requestAuthCodeAndProceed() {
-        callback.onAuthRequired(authCode -> {
-            if (authCode == null) {
-                // User cancelled
-                callback.onSyncCancelled();
-                cleanup();
-                return;
-            }
-            // Continue sync on the background thread
-            executor.submit(() -> {
-                try {
-                    // Submit the auth code and proceed with the rest of the sync
-                    submitAuthCodeAndSync(authCode);
-                } catch (Exception e) {
-                    Log.e(TAG, "Auth submission or sync failed", e);
-                    mainHandler.post(() -> callback.onError("授权或同步过程出错: " + e.getMessage()));
-                    cleanup();
-                }
-            });
-        });
-    }
-
-
-    private void submitAuthCodeAndSync(String authCode) throws IOException {
-        writer.println(authCode);
-        String response = reader.readLine();
-
-        if (!"AUTH_SUCCESS".equals(response)) {
-            Log.e(TAG, "Auth failed. Server response: " + response);
-            mainHandler.post(() -> callback.onError("授权失败，请检查授权码。"));
-            cleanup();
-            return;
-        }
-
-        Log.d(TAG, "Auth successful");
-        // 1. Get local data and send to server
-        mainHandler.post(() -> callback.onSyncProgress("正在发送本地数据..."));
-        QuestionManager qm = QuestionManager.getInstance(context);
-        List<Subject> localSubjects = qm.getSubjects();
-        List<ExamHistoryEntry> localHistory = qm.getExamHistoryEntries();
-        SyncData localData = new SyncData(localSubjects, localHistory);
-        Gson gson = new Gson();
-        String jsonToServer = gson.toJson(localData);
-        writer.println(jsonToServer);
-        Log.d(TAG, "Sent local data to server.");
-
-        // 2. Receive merged data from server
-        mainHandler.post(() -> callback.onSyncProgress("正在接收合并后的数据..."));
-        String jsonFromServer = reader.readLine();
-        if (jsonFromServer == null) {
-            throw new IOException("Server closed connection unexpectedly.");
-        }
-        Type syncDataType = new TypeToken<SyncData>() {}.getType();
-        SyncData mergedData = gson.fromJson(jsonFromServer, syncDataType);
-        Log.d(TAG, "Received merged data from server.");
-
-        // Recalculate stats on the client side to ensure data consistency
-        if (mergedData != null && mergedData.getSubjects() != null) {
-            for (Subject subject : mergedData.getSubjects()) {
-                subject.recalculateStats();
-            }
-        }
-
-        // 3. Save merged data
-        mainHandler.post(() -> callback.onSyncProgress("正在更新本地数据..."));
-        java.util.Map<String, Subject> mergedSubjectsMap = mergedData.getSubjects().stream()
-                .collect(java.util.stream.Collectors.toMap(Subject::getId, java.util.function.Function.identity()));
-        qm.replaceAllSubjects(mergedSubjectsMap);
-        qm.replaceAllHistory(mergedData.getExamHistory());
-        Log.d(TAG, "Saved merged data locally.");
-
-        mainHandler.post(callback::onSyncCompleted);
-        cleanup();
     }
 
     public void cleanup() {
