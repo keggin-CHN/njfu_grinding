@@ -23,7 +23,7 @@ BASE_URL = "http://202.119.208.57"
 HEADLESS = True  # 设置为 True 启用无头模式（看不到浏览器窗口）
 USE_EDGE = True   # 设置为 True 使用 Edge 浏览器，False 使用 Chrome
 # WebDriver 获取策略: 'auto' (自动尝试所有), 'manager' (仅 webdriver-manager), 'system' (仅系统路径), 'local' (仅本地文件)
-DRIVER_STRATEGY = 'system'
+DRIVER_STRATEGY = 'auto'
 # --- 宏定义结束 ---
 
 QUESTION_BANK_FILE = 'question_bank.json'
@@ -639,4 +639,5 @@ if __name__ == "__main__":
         print(f"\n\n❌ 程序异常退出: {e}")
         import traceback
         traceback.print_exc()
+
 
