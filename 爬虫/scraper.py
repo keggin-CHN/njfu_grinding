@@ -15,8 +15,8 @@ import time
 import os
 
 # --- 宏定义 ---
-USERNAME = "2410407105"
-PASSWORD = "30287X"
+USERNAME = ""
+PASSWORD = ""
 EXAM_URL = "http://202.119.208.57/servlet/pc/ExamCaseController?exam_id=0f770163-73fe-4328-861a-dfd15ce26726"
 LOOP_COUNT = 2
 BASE_URL = "http://202.119.208.57"
@@ -639,3 +639,4 @@ if __name__ == "__main__":
         print(f"\n\n❌ 程序异常退出: {e}")
         import traceback
         traceback.print_exc()
+
