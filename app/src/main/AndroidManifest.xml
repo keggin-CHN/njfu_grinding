@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:debuggable="true"
+        android:enableOnBackInvokedCallback="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ExamApp"
+        tools:targetApi="31">
+        
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Theme.AppCompat" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".PracticeActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ReviewActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".MockExamActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ResultActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ImportActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".WrongQuestionsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".SearchActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".AISettingsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".BackgroundSettingsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".DeveloperModeActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".AboutActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".StudyModeActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".EndlessModeActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".HistoryActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity
+            android:name=".WrongAnalysisActivity"
+            android:screenOrientation="portrait" />
+            
+        <service
+            android:name=".service.AIProcessingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

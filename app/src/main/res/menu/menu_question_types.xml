@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_type_single"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="@string/type_single" />
+    <item
+        android:id="@+id/menu_type_multiple"
+        android:icon="@android:drawable/ic_menu_week"
+        android:title="@string/type_multiple" />
+    <item
+        android:id="@+id/menu_type_true_false"
+        android:icon="@android:drawable/ic_menu_help"
+        android:title="@string/type_true_false" />
+</menu>

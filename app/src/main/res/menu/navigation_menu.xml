@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_import"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="@string/import_questions" />
+
+    <item
+        android:id="@+id/nav_sync"
+        android:icon="@drawable/ic_sync"
+        android:title="同步数据" />
+
+    <item
+        android:id="@+id/nav_ai_settings"
+        android:icon="@drawable/ic_ai_assistant"
+        android:title="API接口设置" />
+
+    <item
+        android:id="@+id/nav_background_settings"
+        android:icon="@drawable/ic_background"
+        android:title="背景设置" />
+
+    <item
+        android:id="@+id/nav_developer_mode"
+        android:icon="@drawable/ic_developer"
+        android:title="开发者模式" />
+
+    <item
+        android:id="@+id/nav_share"
+        android:icon="@drawable/ic_share"
+        android:title="分享" />
+
+    <item
+        android:id="@+id/nav_about"
+        android:icon="@drawable/ic_about"
+        android:title="关于" />
+</menu>

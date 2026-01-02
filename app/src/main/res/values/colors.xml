@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#1976D2</color>
+    <color name="primary_dark">#1565C0</color>
+    <color name="accent">#FF6F00</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray">#757575</color>
+    <color name="light_gray">#F5F5F5</color>
+    <color name="dark_gray">#424242</color>
+    <color name="success">#4CAF50</color>
+    <color name="error">#F44336</color>
+    <color name="warning">#FF9800</color>
+    <color name="info">#2196F3</color>
+    <color name="answered_blue">#BBDEFB</color>
+    <color name="divider">#BDBDBD</color>
+    <color name="light_divider">#E0E0E0</color>
+    <color name="dark_divider">#616161</color>
+    <color name="colorPrimaryText">#212121</color>
+    <color name="dark_primary">#121212</color>
+    <color name="dark_secondary">#1F1F1F</color>
+    <color name="dark_surface">#2C2C2C</color>
+    <color name="dark_text">#FFFFFF</color>
+    <color name="dark_text_secondary">#B3B3B3</color>
+    <color name="light_primary">#FFFFFF</color>
+    <color name="light_secondary">#F7F7F7</color>
+    <color name="light_surface">#FFFFFF</color>
+    <color name="light_text">#212121</color>
+    <color name="light_text_secondary">#727272</color>
+    <color name="progress_low">#F44336</color>
+    <color name="progress_medium">#FFC107</color>
+    <color name="progress_high">#4CAF50</color>
+    <color name="red">#FF0000</color>
+    <color name="answered_correct">#4CAF50</color>
+    <color name="answered_wrong">#F44336</color>
+    <color name="unanswered_gray">#BDBDBD</color>
+    <color name="wrong_count_low">#FFCDD2</color> <!-- 1-2次 -->
+    <color name="wrong_count_medium">#FF8A80</color> <!-- 3-5次 -->
+    <color name="wrong_count_high">#D32F2F</color> <!-- 5次以上 -->
+</resources>
