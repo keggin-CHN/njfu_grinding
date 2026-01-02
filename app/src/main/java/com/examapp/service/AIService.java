@@ -117,6 +117,10 @@ public class AIService {
         askQuestion(question, callback, false);
     }
     
+    // 判断题专用提示词模板（简洁版）
+    private static final String TRUE_FALSE_PROMPT_TEMPLATE =
+        "判断题：{question}\n答案：{answer}\n\n请用1-2句话简要说明判断依据。";
+    
     public void askQuestion(Question question, AICallback callback, boolean forceRefresh) {
         if (!settingsManager.isConfigured()) {
             mainHandler.post(() -> callback.onError("请先在设置中配置AI参数"));
@@ -138,26 +142,38 @@ public class AIService {
         String url = settingsManager.getFullApiUrl();
         String apiKey = settingsManager.getApiKey();
         String model = settingsManager.getModel();
-        String promptTemplate = settingsManager.getAnswerPrompt();
         float temperature = settingsManager.getTemperature();
         float topP = settingsManager.getTopP();
         
-        // 构建选项文本
-        StringBuilder optionsText = new StringBuilder();
-        List<String> options = question.getOptions();
-        if (options != null && !options.isEmpty()) {
-            for (String option : options) {
-                optionsText.append(option).append("\n");
-            }
-        } else {
-            optionsText.append("无选项(判断题)");
-        }
+        String prompt;
+        boolean isTrueFalseQuestion = "判断题".equals(question.getType());
         
-        // 替换提示词中的占位符
-        String prompt = promptTemplate
-                .replace("{question}", question.getQuestionText())
-                .replace("{options}", optionsText.toString())
-                .replace("{answer}", question.getFormattedAnswer());
+        if (isTrueFalseQuestion) {
+            // 判断题使用专用提示词
+            prompt = TRUE_FALSE_PROMPT_TEMPLATE
+                    .replace("{question}", question.getQuestionText())
+                    .replace("{answer}", question.getFormattedAnswer());
+        } else {
+            // 选择题使用用户自定义提示词
+            String promptTemplate = settingsManager.getAnswerPrompt();
+            
+            // 构建选项文本
+            StringBuilder optionsText = new StringBuilder();
+            List<String> options = question.getOptions();
+            if (options != null && !options.isEmpty()) {
+                for (String option : options) {
+                    optionsText.append(option).append("\n");
+                }
+            } else {
+                optionsText.append("无选项");
+            }
+            
+            // 替换提示词中的占位符
+            prompt = promptTemplate
+                    .replace("{question}", question.getQuestionText())
+                    .replace("{options}", optionsText.toString())
+                    .replace("{answer}", question.getFormattedAnswer());
+        }
         
         try {
             JSONObject requestJson = new JSONObject();

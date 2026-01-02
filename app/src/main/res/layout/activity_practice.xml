@@ -160,12 +160,38 @@
 
         <include layout="@layout/nav_header" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/question_nav_recycler_view"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:padding="8dp"/>
+            android:layout_weight="1">
+            
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/question_nav_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:scrollbars="vertical"
+                android:scrollbarStyle="outsideOverlay"
+                android:scrollbarThumbVertical="@color/primary"
+                android:fadeScrollbars="false"/>
+                
+            <!-- 滚动百分比显示（动态位置） -->
+            <TextView
+                android:id="@+id/scroll_percentage_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_marginEnd="4dp"
+                android:background="@color/primary"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="0%"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:visibility="gone"/>
+        </FrameLayout>
 
         <include layout="@layout/legend_view"
             android:id="@+id/legend_view"

@@ -18,10 +18,12 @@ public class Subject implements Serializable {
     private int wrongReviewLastPosition;
     private int sortOrder; // 排序顺序
     private long lastModified; // 新增：最后修改时间
+    private int tagColor; // 标签颜色，-1表示使用默认随机颜色
 
     public Subject() {
         this.sortOrder = 0;
         this.lastModified = System.currentTimeMillis();
+        this.tagColor = -1;
     }
 
     public Subject(String id, String name) {
@@ -148,6 +150,14 @@ public class Subject implements Serializable {
 
     public void setLastModified(long lastModified) {
         this.lastModified = lastModified;
+    }
+
+    public int getTagColor() {
+        return tagColor;
+    }
+
+    public void setTagColor(int tagColor) {
+        this.tagColor = tagColor;
     }
 
     /**

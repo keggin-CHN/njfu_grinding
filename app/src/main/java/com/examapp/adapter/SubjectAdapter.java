@@ -1,5 +1,7 @@
 package com.examapp.adapter;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectViewHolder> {
     private final List<Subject> subjects;
@@ -75,11 +78,28 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
         return subjects.size();
     }
 
+    // 预定义的颜色数组（柔和色调）
+    private static final int[] TAG_COLORS = {
+        0xFF4CAF50, // 绿色
+        0xFF2196F3, // 蓝色
+        0xFFFF9800, // 橙色
+        0xFF9C27B0, // 紫色
+        0xFFE91E63, // 粉色
+        0xFF00BCD4, // 青色
+        0xFF795548, // 棕色
+        0xFF607D8B, // 蓝灰色
+        0xFFF44336, // 红色
+        0xFF3F51B5  // 靛蓝色
+    };
+
     public static class SubjectViewHolder extends RecyclerView.ViewHolder {
         private final TextView subjectNameView;
         private final TextView questionsCountView;
         private final TextView accuracyView;
         private final ProgressBar progressBar;
+        private final ProgressBar encounterProgressBar;
+        private final TextView encounterProgressLabel;
+        private final View colorTag;
         private final ImageButton deleteButton;
         private final ImageButton renameButton;
         private final MaterialCardView cardView;
@@ -93,6 +113,9 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
             questionsCountView = itemView.findViewById(R.id.questions_count);
             accuracyView = itemView.findViewById(R.id.accuracy);
             progressBar = itemView.findViewById(R.id.progress_bar);
+            encounterProgressBar = itemView.findViewById(R.id.encounter_progress_bar);
+            encounterProgressLabel = itemView.findViewById(R.id.encounter_progress_label);
+            colorTag = itemView.findViewById(R.id.color_tag);
             deleteButton = itemView.findViewById(R.id.delete_button);
             renameButton = itemView.findViewById(R.id.rename_button);
         }
@@ -101,6 +124,38 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
             subjectNameView.setText(subject.getDisplayName());
             questionsCountView.setText(String.format(Locale.getDefault(), "共%d题", subject.getTotalQuestions()));
             
+            // 设置颜色标签 - 优先使用自定义颜色，否则根据科目ID的hashCode选择颜色
+            int tagColor = subject.getTagColor();
+            if (tagColor == -1) {
+                // 使用随机颜色
+                int colorIndex = Math.abs(subject.getId().hashCode()) % TAG_COLORS.length;
+                tagColor = TAG_COLORS[colorIndex];
+            }
+            colorTag.setBackgroundColor(tagColor);
+            
+            // 刷题进度（遇到的题目数/总题目数）
+            int totalQuestions = subject.getTotalQuestions();
+            int attemptedCount = subject.getAttemptedCount();
+            // 限制attemptedCount不超过totalQuestions
+            int displayAttempted = Math.min(attemptedCount, totalQuestions);
+            float encounterProgress = totalQuestions > 0 ? (float) displayAttempted / totalQuestions * 100 : 0;
+            encounterProgress = Math.min(encounterProgress, 100f); // 确保不超过100%
+            encounterProgressBar.setProgress((int) encounterProgress);
+            encounterProgressLabel.setText(String.format(Locale.getDefault(), "刷题进度: %.1f%% (%d/%d)",
+                encounterProgress, displayAttempted, totalQuestions));
+            
+            // 刷题进度条颜色
+            int encounterColor;
+            if (encounterProgress < 30) {
+                encounterColor = 0xFF9E9E9E; // 灰色
+            } else if (encounterProgress < 70) {
+                encounterColor = tagColor; // 使用科目颜色
+            } else {
+                encounterColor = 0xFF4CAF50; // 绿色
+            }
+            encounterProgressBar.getProgressDrawable().setColorFilter(encounterColor, android.graphics.PorterDuff.Mode.SRC_IN);
+            
+            // 正确率
             float accuracy = (float) subject.getAccuracy();
             accuracyView.setText(String.format(Locale.getDefault(), "正确率: %.1f%%", accuracy));
             progressBar.setProgress((int) accuracy);

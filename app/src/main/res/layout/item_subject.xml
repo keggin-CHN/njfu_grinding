@@ -4,6 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:stateListAnimator="@animator/card_lift"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
     app:strokeWidth="0dp"
@@ -20,6 +24,14 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
+            <!-- 颜色标签 -->
+            <View
+                android:id="@+id/color_tag"
+                android:layout_width="6dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="12dp"
+                android:background="@color/primary" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -65,13 +77,33 @@
                 android:src="@android:drawable/ic_menu_delete" />
         </LinearLayout>
 
+        <!-- 刷题进度（遇到的题目/总题目） -->
+        <TextView
+            android:id="@+id/encounter_progress_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:text="刷题进度: 0%" />
+
+        <ProgressBar
+            android:id="@+id/encounter_progress_bar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginTop="4dp"
+            android:max="100"
+            android:progress="0" />
+
+        <!-- 正确率进度条 -->
         <ProgressBar
             android:id="@+id/progress_bar"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="8dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
             android:max="100"
             android:progress="0" />
 

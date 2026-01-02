@@ -1,12 +1,16 @@
 package com.examapp;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.RadioButton;
@@ -26,6 +30,20 @@ import java.io.InputStream;
 
 public class ImportActivity extends BaseActivity {
     private static final int FILE_PICKER_REQUEST_CODE = 100;
+    
+    // 预定义的标签颜色
+    private static final int[] TAG_COLORS = {
+        0xFFE57373, // 红色
+        0xFFFF8A65, // 橙色
+        0xFFFFD54F, // 黄色
+        0xFF81C784, // 绿色
+        0xFF4FC3F7, // 浅蓝
+        0xFF64B5F6, // 蓝色
+        0xFF9575CD, // 紫色
+        0xFFF06292, // 粉色
+        0xFFA1887F, // 棕色
+        0xFF90A4AE  // 灰蓝
+    };
 
     private EditText subjectNameInput;
     private EditText imageUrlInput;
@@ -37,8 +55,11 @@ public class ImportActivity extends BaseActivity {
     private SeekBar concurrencySeekBar;
     private TextView concurrencyLabel;
     private TextView aiProcessHint;
+    private LinearLayout colorPickerContainer;
     private QuestionImporter questionImporter;
     private Uri selectedFileUri;
+    private int selectedTagColor = -1; // -1表示随机颜色
+    private View selectedColorView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +114,89 @@ public class ImportActivity extends BaseActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+        
+        // 颜色选择器
+        colorPickerContainer = findViewById(R.id.color_picker_container);
+        setupColorPicker();
+    }
+    
+    private void setupColorPicker() {
+        int size = (int) (40 * getResources().getDisplayMetrics().density);
+        int margin = (int) (8 * getResources().getDisplayMetrics().density);
+        
+        // 添加"随机"颜色选项
+        View randomColorView = createColorView(size, margin, -1, true);
+        colorPickerContainer.addView(randomColorView);
+        selectedColorView = randomColorView; // 默认选中随机
+        
+        // 添加预定义颜色选项
+        for (int color : TAG_COLORS) {
+            View colorView = createColorView(size, margin, color, false);
+            colorPickerContainer.addView(colorView);
+        }
+    }
+    
+    private View createColorView(int size, int margin, int color, boolean isRandom) {
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setGravity(android.view.Gravity.CENTER);
+        
+        LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        containerParams.setMargins(margin, 0, margin, 0);
+        container.setLayoutParams(containerParams);
+        
+        // 颜色圆圈
+        View colorCircle = new View(this);
+        LinearLayout.LayoutParams circleParams = new LinearLayout.LayoutParams(size, size);
+        colorCircle.setLayoutParams(circleParams);
+        
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setShape(GradientDrawable.OVAL);
+        
+        if (isRandom) {
+            // 随机颜色显示为彩虹渐变
+            drawable.setGradientType(GradientDrawable.SWEEP_GRADIENT);
+            drawable.setColors(new int[]{
+                0xFFE57373, 0xFFFFD54F, 0xFF81C784,
+                0xFF64B5F6, 0xFF9575CD, 0xFFE57373
+            });
+        } else {
+            drawable.setColor(color);
+        }
+        
+        colorCircle.setBackground(drawable);
+        container.addView(colorCircle);
+        
+        // 选中指示器
+        ImageView checkMark = new ImageView(this);
+        LinearLayout.LayoutParams checkParams = new LinearLayout.LayoutParams(
+            (int) (20 * getResources().getDisplayMetrics().density),
+            (int) (20 * getResources().getDisplayMetrics().density)
+        );
+        checkParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        checkMark.setLayoutParams(checkParams);
+        checkMark.setImageResource(R.drawable.ic_check);
+        checkMark.setColorFilter(0xFF4CAF50);
+        checkMark.setVisibility(isRandom ? View.VISIBLE : View.INVISIBLE); // 默认选中随机
+        container.addView(checkMark);
+        
+        container.setOnClickListener(v -> {
+            // 取消之前的选中状态
+            if (selectedColorView != null) {
+                ImageView prevCheck = (ImageView) ((LinearLayout) selectedColorView).getChildAt(1);
+                prevCheck.setVisibility(View.INVISIBLE);
+            }
+            
+            // 设置新的选中状态
+            selectedColorView = container;
+            checkMark.setVisibility(View.VISIBLE);
+            selectedTagColor = isRandom ? -1 : color;
+        });
+        
+        return container;
     }
 
     private void openFilePicker() {
@@ -133,7 +237,7 @@ public class ImportActivity extends BaseActivity {
         new Thread(() -> {
             try {
                 InputStream inputStream = getContentResolver().openInputStream(selectedFileUri);
-                Subject subject = questionImporter.importFromJson(inputStream, subjectName);
+                Subject subject = questionImporter.importFromJson(inputStream, subjectName, selectedTagColor);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);

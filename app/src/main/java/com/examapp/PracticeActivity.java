@@ -70,6 +70,7 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
     private List<Integer> questionHistory = new ArrayList<>();
     private String subjectId;
     private boolean isReviewMode;
+    private boolean isWrongReviewMode; // 新增：错题回顾模式标志
     private boolean isRandomOrder;
     private GestureDetectorCompat gestureDetector;
     private boolean isBindingQuestion;
@@ -92,6 +93,7 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
     private Map<String, Boolean> expansionState = new LinkedHashMap<>();
     private LinearLayout randomModeSidebar;
     private View legendView;
+    private TextView scrollPercentageText;
 
     private float drawerGestureStartX;
     private boolean drawerGestureEligible;
@@ -140,6 +142,7 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
         questionNavRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         randomModeSidebar = findViewById(R.id.random_mode_sidebar);
         legendView = findViewById(R.id.legend_view);
+        scrollPercentageText = findViewById(R.id.scroll_percentage_text);
         typeMenuButton = findViewById(R.id.type_menu_button);
         practiceScrollView = findViewById(R.id.practice_scroll_view);
 
@@ -231,6 +234,7 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
     private void applyMode(String mode) {
         isRandomOrder = MODE_RANDOM.equals(mode) || MODE_WRONG_REVIEW.equals(mode);
         isReviewMode = MODE_REVIEW.equals(mode);
+        isWrongReviewMode = MODE_WRONG_REVIEW.equals(mode); // 新增：错题回顾模式标志
 
         if (MODE_RANDOM.equals(mode)) {
             questionNavRecyclerView.setVisibility(View.GONE);
@@ -239,6 +243,11 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
             questionHistory.clear();
             filterQuestionsByType(null);
             updateSidebarButtonStyles(null); // Explicitly set mixed as active
+        } else if (MODE_WRONG_REVIEW.equals(mode)) {
+            // 错题回顾模式：显示题目导航，按错误次数显示颜色
+            questionNavRecyclerView.setVisibility(View.VISIBLE);
+            randomModeSidebar.setVisibility(View.GONE);
+            legendView.setVisibility(View.VISIBLE); // 显示图例
         } else {
             questionNavRecyclerView.setVisibility(View.VISIBLE);
             randomModeSidebar.setVisibility(View.GONE);
@@ -343,12 +352,18 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
 
     private void updateQuestionNavigationDrawer() {
         if (subjectExpandableAdapter == null) {
-            List<Object> items = groupQuestionsByType(baseQuestions);
+            // 确定使用的题目列表：错题回顾模式用questions，其他模式用baseQuestions
+            List<Question> questionsForNav = isWrongReviewMode ? questions : baseQuestions;
+            List<Object> items = groupQuestionsByType(questionsForNav);
+            
+            // 错题回顾模式和背题模式都使用错误次数颜色显示
+            boolean useWrongCountColors = isReviewMode || isWrongReviewMode;
+            
             subjectExpandableAdapter = new SubjectExpandableAdapter(items, new HashMap<>(), currentPosition, position -> {
                 currentPosition = position;
                 displayCurrentQuestion();
                 drawerLayout.closeDrawer(GravityCompat.START);
-            }, isReviewMode, baseQuestions); // Pass the full list
+            }, useWrongCountColors, questionsForNav);
             
             GridLayoutManager layoutManager = new GridLayoutManager(this, 5);
             layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -359,10 +374,142 @@ public class PracticeActivity extends BaseActivity implements GestureDetector.On
             });
             questionNavRecyclerView.setLayoutManager(layoutManager);
             questionNavRecyclerView.setAdapter(subjectExpandableAdapter);
+            
+            // 添加滚动监听器，显示滚动百分比
+            questionNavRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    updateScrollPercentage();
+                }
+                
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        // 滚动停止后延迟隐藏百分比
+                        scrollPercentageText.postDelayed(() -> {
+                            if (scrollPercentageText != null) {
+                                scrollPercentageText.setVisibility(View.GONE);
+                            }
+                        }, 1500);
+                    } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                        // 开始滚动时显示百分比
+                        if (scrollPercentageText != null) {
+                            scrollPercentageText.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            });
+            
+            // 添加抽屉打开监听，自动滚动到当前题目
+            drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    scrollToCurrentQuestion();
+                    // 打开时显示百分比
+                    updateScrollPercentage();
+                    if (scrollPercentageText != null) {
+                        scrollPercentageText.setVisibility(View.VISIBLE);
+                        // 延迟隐藏
+                        scrollPercentageText.postDelayed(() -> {
+                            if (scrollPercentageText != null) {
+                                scrollPercentageText.setVisibility(View.GONE);
+                            }
+                        }, 2000);
+                    }
+                }
+            });
         } else {
             subjectExpandableAdapter.setCurrentQuestionIndex(currentPosition);
             subjectExpandableAdapter.notifyDataSetChanged();
+            // 滚动到当前题目（如果抽屉已打开）
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                scrollToCurrentQuestion();
+            }
         }
+    }
+    
+    /**
+     * 滚动侧边栏到当前题目位置
+     */
+    private void scrollToCurrentQuestion() {
+        if (subjectExpandableAdapter != null && questionNavRecyclerView != null) {
+            // 找到当前题目在适配器中的位置
+            int adapterPosition = findAdapterPositionForQuestion(currentPosition);
+            if (adapterPosition >= 0) {
+                // 使用 smoothScrollToPosition 平滑滚动，或 scrollToPosition 直接跳转
+                questionNavRecyclerView.scrollToPosition(adapterPosition);
+            }
+        }
+    }
+    
+    /**
+     * 更新滚动百分比显示（位置跟随滚动条）
+     */
+    private void updateScrollPercentage() {
+        if (scrollPercentageText == null || questionNavRecyclerView == null) return;
+        
+        int offset = questionNavRecyclerView.computeVerticalScrollOffset();
+        int range = questionNavRecyclerView.computeVerticalScrollRange() - questionNavRecyclerView.computeVerticalScrollExtent();
+        int extent = questionNavRecyclerView.computeVerticalScrollExtent();
+        
+        if (range > 0) {
+            int percentage = (int) ((offset * 100.0f) / range);
+            percentage = Math.max(0, Math.min(100, percentage));
+            scrollPercentageText.setText(percentage + "%");
+            
+            // 计算百分比文字的Y位置，跟随滚动条
+            float scrollRatio = (float) offset / range;
+            int recyclerHeight = questionNavRecyclerView.getHeight();
+            int textHeight = scrollPercentageText.getHeight();
+            if (textHeight == 0) textHeight = 30; // 估算高度
+            
+            // 计算Y位置：在RecyclerView高度范围内移动
+            int maxY = recyclerHeight - textHeight - 16; // 留出边距
+            int targetY = (int) (scrollRatio * maxY);
+            targetY = Math.max(8, Math.min(targetY, maxY)); // 限制范围
+            
+            scrollPercentageText.setTranslationY(targetY);
+        } else {
+            scrollPercentageText.setText("0%");
+            scrollPercentageText.setTranslationY(8);
+        }
+    }
+    
+    /**
+     * 根据题目索引找到适配器中的位置
+     */
+    private int findAdapterPositionForQuestion(int questionIndex) {
+        if (subjectExpandableAdapter == null) return -1;
+        
+        // 遍历适配器项找到对应题目
+        for (int i = 0; i < subjectExpandableAdapter.getItemCount(); i++) {
+            if (subjectExpandableAdapter.getItemViewType(i) == SubjectExpandableAdapter.TYPE_QUESTION) {
+                // 这里需要获取适配器中的题目对象
+                // 由于适配器内部结构，我们需要另一种方式
+            }
+        }
+        
+        // 简化实现：估算位置（每组有1个header + N个题目）
+        // 更好的方式是在适配器中提供方法
+        List<Question> questionsForNav = isWrongReviewMode ? questions : baseQuestions;
+        int targetIndex = isWrongReviewMode ? questionIndex : questionIndex;
+        
+        int position = 0;
+        String currentType = null;
+        for (int i = 0; i <= targetIndex && i < questionsForNav.size(); i++) {
+            Question q = questionsForNav.get(i);
+            if (!q.getType().equals(currentType)) {
+                position++; // header
+                currentType = q.getType();
+            }
+            if (i == targetIndex) {
+                return position;
+            }
+            position++;
+        }
+        return position > 0 ? position : 0;
     }
 
     private List<Object> groupQuestionsByType(List<Question> questions) {

@@ -26,11 +26,16 @@ public class QuestionImporter {
     }
 
     public Subject importFromJson(InputStream inputStream, String subjectName) throws Exception {
+        return importFromJson(inputStream, subjectName, -1);
+    }
+    
+    public Subject importFromJson(InputStream inputStream, String subjectName, int tagColor) throws Exception {
         String json = readInputStream(inputStream);
         JsonObject jsonObject = new Gson().fromJson(json, JsonObject.class);
 
         String subjectId = UUID.randomUUID().toString();
         Subject subject = new Subject(subjectId, subjectName);
+        subject.setTagColor(tagColor);
 
         List<Question> questions = new ArrayList<>();
         for (String typeKey : jsonObject.keySet()) {

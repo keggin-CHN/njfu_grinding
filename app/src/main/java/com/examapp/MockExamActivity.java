@@ -54,6 +54,7 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
     private DrawerLayout drawerLayout;
     private RecyclerView questionNavRecyclerView;
     private SubjectExpandableAdapter subjectExpandableAdapter;
+    private TextView scrollPercentageText;
     private ScrollView mockScrollView;
     private TextView questionNumberView;
     private TextView questionTextView;
@@ -89,6 +90,7 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
         
         drawerLayout = findViewById(R.id.mock_drawer_layout);
         questionNavRecyclerView = findViewById(R.id.question_nav_recycler_view);
+        scrollPercentageText = findViewById(R.id.scroll_percentage_text);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -142,6 +144,13 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
         } else {
             examQuestions = new ArrayList<>();
         }
+        
+        // 修复：重置克隆题目的答题状态，避免被顺序刷题的记录污染侧边栏
+        for (Question q : examQuestions) {
+            q.setUserAnswer(null);
+            q.setAnswerState(Question.AnswerState.UNANSWERED);
+        }
+        
         answers = new HashMap<>();
         currentPosition = 0;
     }
@@ -258,6 +267,52 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
             });
             questionNavRecyclerView.setLayoutManager(layoutManager);
             questionNavRecyclerView.setAdapter(subjectExpandableAdapter);
+            
+            // 添加滚动监听器，显示滚动百分比
+            questionNavRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    updateScrollPercentage();
+                }
+                
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        // 滚动停止后延迟隐藏百分比
+                        if (scrollPercentageText != null) {
+                            scrollPercentageText.postDelayed(() -> {
+                                if (scrollPercentageText != null) {
+                                    scrollPercentageText.setVisibility(View.GONE);
+                                }
+                            }, 1500);
+                        }
+                    } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                        // 开始滚动时显示百分比
+                        if (scrollPercentageText != null) {
+                            scrollPercentageText.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            });
+            
+            // 添加抽屉打开监听，自动滚动到当前题目
+            drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    scrollToCurrentQuestion();
+                    updateScrollPercentage();
+                    if (scrollPercentageText != null) {
+                        scrollPercentageText.setVisibility(View.VISIBLE);
+                        scrollPercentageText.postDelayed(() -> {
+                            if (scrollPercentageText != null) {
+                                scrollPercentageText.setVisibility(View.GONE);
+                            }
+                        }, 2000);
+                    }
+                }
+            });
         } else {
             subjectExpandableAdapter.setCurrentQuestionIndex(currentPosition);
             subjectExpandableAdapter.updateAnswers(new HashMap<>(answers));
@@ -591,5 +646,70 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
         String cat = q.getCategory() != null ? q.getCategory().toLowerCase() : "";
         String type = q.getType() != null ? q.getType().toLowerCase() : cat;
         return type.contains("判断") || type.contains("true") || type.contains("false");
+    }
+    
+    /**
+     * 滚动侧边栏到当前题目位置
+     */
+    private void scrollToCurrentQuestion() {
+        if (subjectExpandableAdapter != null && questionNavRecyclerView != null) {
+            int adapterPosition = findAdapterPositionForQuestion(currentPosition);
+            if (adapterPosition >= 0) {
+                questionNavRecyclerView.scrollToPosition(adapterPosition);
+            }
+        }
+    }
+    
+    /**
+     * 根据题目索引找到适配器中的位置
+     */
+    private int findAdapterPositionForQuestion(int questionIndex) {
+        if (subjectExpandableAdapter == null || examQuestions == null) return -1;
+        
+        int position = 0;
+        String currentType = null;
+        for (int i = 0; i <= questionIndex && i < examQuestions.size(); i++) {
+            Question q = examQuestions.get(i);
+            if (!q.getType().equals(currentType)) {
+                position++; // header
+                currentType = q.getType();
+            }
+            if (i == questionIndex) {
+                return position;
+            }
+            position++;
+        }
+        return position > 0 ? position : 0;
+    }
+    
+    /**
+     * 更新滚动百分比显示（位置跟随滚动条）
+     */
+    private void updateScrollPercentage() {
+        if (scrollPercentageText == null || questionNavRecyclerView == null) return;
+        
+        int offset = questionNavRecyclerView.computeVerticalScrollOffset();
+        int range = questionNavRecyclerView.computeVerticalScrollRange() - questionNavRecyclerView.computeVerticalScrollExtent();
+        
+        if (range > 0) {
+            int percentage = (int) ((offset * 100.0f) / range);
+            percentage = Math.max(0, Math.min(100, percentage));
+            scrollPercentageText.setText(percentage + "%");
+            
+            // 计算百分比文字的Y位置，跟随滚动条
+            float scrollRatio = (float) offset / range;
+            int recyclerHeight = questionNavRecyclerView.getHeight();
+            int textHeight = scrollPercentageText.getHeight();
+            if (textHeight == 0) textHeight = 30;
+            
+            int maxY = recyclerHeight - textHeight - 16;
+            int targetY = (int) (scrollRatio * maxY);
+            targetY = Math.max(8, Math.min(targetY, maxY));
+            
+            scrollPercentageText.setTranslationY(targetY);
+        } else {
+            scrollPercentageText.setText("0%");
+            scrollPercentageText.setTranslationY(8);
+        }
     }
 }

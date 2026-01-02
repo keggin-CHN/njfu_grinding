@@ -13,82 +13,81 @@
         android:elevation="4dp"
         app:titleTextColor="@color/white" />
 
-    <ScrollView
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="20dp">
 
-            <androidx.cardview.widget.CardView
+            <TextView
+                android:id="@+id/author_info_textview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                android:layout_marginBottom="24dp">
+                android:text="@string/author_info"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:lineSpacingMultiplier="1.4"
+                android:layout_marginBottom="24dp" />
 
-                <LinearLayout
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/light_gray"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💝 开发不易，感谢支持"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="欢迎star，欢迎投喂 ☕"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_gravity="center">
+
+                <ImageView
+                    android:id="@+id/donate_image"
                     android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:src="@drawable/donate_qr"
+                    android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:contentDescription="@string/donate_caption" />
+
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="关于"
-                        android:textStyle="bold"
-                        android:textSize="@dimen/font_size_xlarge"
-                        android:textColor="@color/black"
-                        android:layout_marginBottom="12dp" />
-
-                    <TextView
-                        android:id="@+id/author_info_textview"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/author_info"
-                        android:textSize="@dimen/font_size_large"
-                        android:textColor="@color/black"
-                        android:layout_marginBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="开发不易，感谢支持"
-                        android:gravity="center"
-                        android:layout_marginBottom="4dp"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="欢迎star，欢迎投喂"
-                        android:textColor="@color/gray"
-                        android:gravity="center"
-                        android:layout_marginBottom="8dp" />
-
-                    <HorizontalScrollView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal">
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:id="@+id/donate_image"
-                                android:layout_width="220dp"
-                                android:layout_height="220dp"
-                                android:src="@drawable/donate_qr"
-                                android:scaleType="fitCenter"
-                                android:contentDescription="@string/donate_caption" />
-                        </LinearLayout>
-                    </HorizontalScrollView>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:text="👆 点击查看大图"
+                    android:textColor="@color/gray"
+                    android:textSize="12sp" />
+            </FrameLayout>
         </LinearLayout>
-    </ScrollView>
+    </androidx.cardview.widget.CardView>
 </LinearLayout>
