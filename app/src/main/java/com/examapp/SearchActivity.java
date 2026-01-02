@@ -118,8 +118,20 @@ public class SearchActivity extends BaseActivity implements QuestionAdapter.OnQu
 
         String lowerKeyword = keyword.toLowerCase();
         for (Question question : allQuestions) {
+            // 搜索题干
             if (question.getQuestionText().toLowerCase().contains(lowerKeyword)) {
                 filteredQuestions.add(question);
+                continue;
+            }
+            
+            // 搜索选项
+            if (question.getOptions() != null) {
+                for (String option : question.getOptions()) {
+                    if (option != null && option.toLowerCase().contains(lowerKeyword)) {
+                        filteredQuestions.add(question);
+                        break; // 找到匹配的选项后跳出循环，避免重复添加
+                    }
+                }
             }
         }
 
