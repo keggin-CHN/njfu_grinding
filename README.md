@@ -17,9 +17,9 @@ BUG问题可提交issue，也可联系本人: admin@mail.keggin.me
 
 关于马院系统的平时作业秒杀油猴插件移步作者的另一仓库:https://github.com/keggin-CHN/njfu-exam
 
-最新版刷题安卓APP下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/all/NJFU.grinding.apk
+最新版刷题安卓APP下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/v1.5.0/NJFU.grinding.apk
 
-最新版windows PC版下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/all/NJFU.grinding.rar （下载完成后解压运行exe）
+最新版windows PC版下载地址:https://github.com/keggin-CHN/njfu_grinding/releases/download/v1.5.0/NJFU.grinding.rar （下载完成后解压运行exe）
 
 本项目包含三个主要部分：题库爬虫、Android刷题应用和桌面端刷题应用。
 
