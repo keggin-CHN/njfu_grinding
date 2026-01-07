@@ -28,7 +28,7 @@ android {
         debug {
             debuggable true
             minifyEnabled false
-            applicationIdSuffix ".debug"
+            // 注意：不要添加applicationIdSuffix，否则会导致覆盖安装时数据丢失
             versionNameSuffix "-debug"
         }
         release {
