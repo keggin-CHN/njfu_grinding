@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.examapp.adapter.SubjectExpandableAdapter;
 import com.examapp.data.QuestionManager;
+import com.examapp.data.MockExamCacheManager;
 import com.examapp.model.ExamHistoryEntry;
 import com.examapp.model.Question;
 import com.examapp.model.Subject;
@@ -42,6 +43,7 @@ import java.util.Map;
 
 public class MockExamActivity extends BaseActivity implements GestureDetector.OnGestureListener {
     private QuestionManager questionManager;
+    private MockExamCacheManager cacheManager;
     private Subject subject;
     private List<Question> examQuestions = new ArrayList<>();
     private Map<Integer, String> answers = new HashMap<>();
@@ -50,6 +52,7 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
     private String subjectName;
     private GestureDetectorCompat gestureDetector;
     private boolean isBindingOptions;
+    private boolean isRestoredFromCache = false;
 
     private DrawerLayout drawerLayout;
     private RecyclerView questionNavRecyclerView;
@@ -71,6 +74,7 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
         setContentView(R.layout.activity_mock_exam);
 
         questionManager = QuestionManager.getInstance(this);
+        cacheManager = MockExamCacheManager.getInstance(this);
         subjectId = getIntent().getStringExtra(StudyModeActivity.EXTRA_SUBJECT_ID);
         subject = questionManager.getSubject(subjectId);
         subjectName = getIntent().getStringExtra(StudyModeActivity.EXTRA_SUBJECT_NAME);
@@ -80,8 +84,63 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
         gestureDetector = new GestureDetectorCompat(this, this);
 
         initializeUI();
-        loadExamQuestions();
+        
+        // 检查是否有未完成的考试缓存
+        if (cacheManager.hasCachedExam(subjectId)) {
+            showRestoreExamDialog();
+        } else {
+            loadExamQuestions();
+            displayCurrentQuestion();
+        }
+    }
+    
+    /**
+     * 显示恢复考试对话框
+     */
+    private void showRestoreExamDialog() {
+        String cacheTime = cacheManager.getFormattedCacheTime();
+        int answeredCount = cacheManager.getAnsweredCount();
+        int totalCount = cacheManager.getTotalCount();
+        
+        String message = String.format("发现未完成的考试记录\n保存时间: %s\n已答: %d/%d 题\n\n是否继续上次的考试？",
+                cacheTime, answeredCount, totalCount);
+        
+        new AlertDialog.Builder(this)
+                .setTitle("恢复考试")
+                .setMessage(message)
+                .setPositiveButton("继续考试", (dialog, which) -> {
+                    restoreFromCache();
+                })
+                .setNegativeButton("重新开始", (dialog, which) -> {
+                    cacheManager.clearCache();
+                    loadExamQuestions();
+                    displayCurrentQuestion();
+                })
+                .setCancelable(false)
+                .show();
+    }
+    
+    /**
+     * 从缓存恢复考试状态
+     */
+    private void restoreFromCache() {
+        examQuestions = cacheManager.getCachedQuestions();
+        answers = cacheManager.getCachedAnswers();
+        currentPosition = cacheManager.getCachedPosition();
+        isRestoredFromCache = true;
+        
+        // 恢复题目的答题状态
+        for (int i = 0; i < examQuestions.size(); i++) {
+            Question q = examQuestions.get(i);
+            if (answers.containsKey(i)) {
+                q.setAnswerState(Question.AnswerState.ANSWERED);
+            } else {
+                q.setAnswerState(Question.AnswerState.UNANSWERED);
+            }
+        }
+        
         displayCurrentQuestion();
+        Toast.makeText(this, "已恢复上次考试进度", Toast.LENGTH_SHORT).show();
     }
 
     private void initializeUI() {
@@ -535,6 +594,9 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
         entry.setMaxScore(maxScore);
         entry.setQuestionRecords(records);
         questionManager.addExamHistoryEntry(entry);
+        
+        // 交卷后清除缓存
+        cacheManager.clearCache();
 
         Intent resultIntent = new Intent(this, ResultActivity.class);
         resultIntent.putExtra(ReviewActivity.EXTRA_HISTORY_ENTRY, (java.io.Serializable) entry);
@@ -583,6 +645,42 @@ public class MockExamActivity extends BaseActivity implements GestureDetector.On
             }
         }
         return null;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 保存当前考试状态（仅当考试未交卷时）
+        saveExamState();
+    }
+    
+    /**
+     * 保存考试状态到缓存
+     */
+    private void saveExamState() {
+        if (examQuestions != null && !examQuestions.isEmpty()) {
+            captureCurrentAnswer();
+            cacheManager.saveExamState(subjectId, subjectName, examQuestions, answers, currentPosition);
+        }
+    }
+    
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return;
+        }
+        
+        // 显示退出确认对话框
+        new AlertDialog.Builder(this)
+                .setTitle("退出考试")
+                .setMessage("考试进度会自动保存，下次进入可以继续作答。\n确定要退出吗？")
+                .setPositiveButton("退出", (dialog, which) -> {
+                    saveExamState();
+                    super.onBackPressed();
+                })
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     @Override

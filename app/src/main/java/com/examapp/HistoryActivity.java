@@ -88,6 +88,10 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnHi
                                          .map(entry -> (double) entry.getScore())
                                          .collect(Collectors.toList());
             
+            // 重要修复：entries列表是最新的在前，但XGBoost预测需要最旧的在前（索引越大权重越高）
+            // 所以需要翻转列表，让最新的分数获得更高的权重
+            java.util.Collections.reverse(scores);
+            
             double predictedScore = XGBoostPredictor.predict(scores);
             predictedScore = Math.min(predictedScore, 100.0); // Cap at 100
 
