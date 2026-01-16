@@ -17,8 +17,8 @@ import threading
 # --- 宏定义 ---
 USERNAME = ""
 PASSWORD = ""
-EXAM_URL = "http://202.119.208.57/servlet/pc/ExamCaseController?exam_id=0f770163-73fe-4328-861a-dfd15ce26726"
-LOOP_COUNT = 50
+EXAM_URL = "http://202.119.208.57/servlet/pc/ExamCaseController?exam_id=6532cc75-6929-476d-a155-cf12ec756fdd"
+LOOP_COUNT = 100
 BASE_URL = "http://202.119.208.57"
 DEBUG = False  
 PARALLEL_WORKERS = 6
@@ -459,7 +459,7 @@ def parse_report_page(html_content, question_bank):
     def clean_question_text(text):
         text = re.sub(r'^\d+[、.]\s*', '', text).strip()
         text = re.sub(r'（?\d+\.\d+分）?', '', text).strip()
-        return text.replace('（）', '').replace('()', '').strip()
+        return text.strip()
 
     def normalize_answer(answer):
         if not answer:
