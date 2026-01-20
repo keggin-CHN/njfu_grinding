@@ -32,12 +32,17 @@ public class AboutActivity extends BaseActivity {
         getSupportActionBar().setTitle("关于");
 
         TextView authorInfoTextView = findViewById(R.id.author_info_textview);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            authorInfoTextView.setText(Html.fromHtml(getString(R.string.author_info), Html.FROM_HTML_MODE_LEGACY));
-        } else {
-            authorInfoTextView.setText(Html.fromHtml(getString(R.string.author_info)));
+        authorInfoTextView.setText(R.string.author_info);
+
+        TextView noticeTextView = findViewById(R.id.notice_textview);
+        if (noticeTextView != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                noticeTextView.setText(Html.fromHtml(getString(R.string.notice_content), Html.FROM_HTML_MODE_LEGACY));
+            } else {
+                noticeTextView.setText(Html.fromHtml(getString(R.string.notice_content)));
+            }
+            noticeTextView.setMovementMethod(LinkMovementMethod.getInstance());
         }
-        authorInfoTextView.setMovementMethod(LinkMovementMethod.getInstance());
         
         // 设置付款码点击事件
         ImageView donateImage = findViewById(R.id.donate_image);

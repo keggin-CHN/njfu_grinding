@@ -28,12 +28,20 @@
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
-        <com.examapp.widget.ScoreChartView
-            android:id="@+id/score_chart_view"
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="220dp"
             android:background="@color/light_gray"
-            android:padding="8dp" />
+            android:fillViewport="true"
+            android:scrollbars="horizontal">
+
+            <com.examapp.widget.ScoreChartView
+                android:id="@+id/score_chart_view"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:padding="8dp" />
+
+        </HorizontalScrollView>
 
         <TextView
             android:id="@+id/predicted_score_view"

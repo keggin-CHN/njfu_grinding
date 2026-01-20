@@ -56,6 +56,10 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".OnlineQuestionBankActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".WrongQuestionsActivity"
             android:screenOrientation="portrait" />
 

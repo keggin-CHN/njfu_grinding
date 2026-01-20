@@ -40,7 +40,8 @@
     <string name="delete">删除</string>
     <string name="rename">重命名</string>
     <string name="subject_name">科目名称</string>
-    <string name="author_info"><![CDATA[作者: Keggin<br/>有问题请联系: <a href="mailto:admin@mail.keggin.me">admin@mail.keggin.me</a><br/>本项目的github仓库: <a href="https://github.com/keggin-CHN/njfu_grinding">https://github.com/keggin-CHN/njfu_grinding</a>]]></string>
+    <string name="author_info">作者：Keggin</string>
+    <string name="notice_content"><![CDATA[1. 本应用为 GitHub 开源项目（<a href="https://github.com/keggin-CHN/njfu_grinding">https://github.com/keggin-CHN/njfu_grinding</a>），若您通过付款获得此软件，请务必警惕并核实来源。<br/><br/>2. 原作者目前已无马院课程压力，后续题库更新难以持续维护，项目已基本完工，欢迎有意者联系 <a href="mailto:admin@mail.keggin.tech">admin@mail.keggin.tech</a>。]]></string>
     <string name="loading">加载中...</string>
     <string name="error">错误</string>
     <string name="success">成功</string>

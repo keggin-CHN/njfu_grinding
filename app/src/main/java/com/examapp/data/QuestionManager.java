@@ -325,7 +325,16 @@ public class QuestionManager {
         List<Question> multipleChoice = new ArrayList<>();
         List<Question> trueOrFalse = new ArrayList<>();
 
+        // Use a Set to track unique question texts to avoid duplicates if the source has them
+        java.util.Set<String> seenQuestions = new java.util.HashSet<>();
+
         for (Question question : subject.getQuestions()) {
+            // Simple de-duplication based on question text
+            if (seenQuestions.contains(question.getQuestionText())) {
+                continue;
+            }
+            seenQuestions.add(question.getQuestionText());
+
             String category = question.getCategory() != null ? question.getCategory().toLowerCase() : "";
 
             if (category.contains("单选") || category.contains("single")) {

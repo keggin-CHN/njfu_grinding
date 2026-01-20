@@ -1,0 +1,171 @@
+name: Android Build and Release
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.6'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Generate Release Keystore
+      run: |
+        keytool -genkey -v -keystore app/release.keystore -storepass android -alias androidreleasekey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Release,O=Android,C=US"
+
+    - name: Build Release APKs (All Architectures)
+      run: ./gradlew assembleRelease
+
+    - name: Rename APK files with version info
+      run: |
+        cd app/build/outputs/apk/release
+        # Ensure all APKs are in the root of the release directory (handle subdirectories created by splits)
+        find . -mindepth 2 -type f -name "*.apk" -exec mv {} . \;
+        
+        for file in *.apk; do
+          if [[ "$file" == *"universal"* ]]; then
+            mv "$file" "NJFU-grinding-universal-release.apk"
+          elif [[ "$file" == *"armeabi-v7a"* ]]; then
+            mv "$file" "NJFU-grinding-armeabi-v7a-release.apk"
+          elif [[ "$file" == *"arm64-v8a"* ]]; then
+            mv "$file" "NJFU-grinding-arm64-v8a-release.apk"
+          elif [[ "$file" == *"x86_64"* ]]; then
+            mv "$file" "NJFU-grinding-x86_64-release.apk"
+          elif [[ "$file" == *"x86"* ]] && [[ "$file" != *"x86_64"* ]]; then
+            mv "$file" "NJFU-grinding-x86-release.apk"
+          fi
+        done
+
+    - name: Upload Universal APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: universal-apk
+        path: app/build/outputs/apk/release/NJFU-grinding-universal-release.apk
+        if-no-files-found: warn
+
+    - name: Upload ARM64-v8a APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: arm64-v8a-apk
+        path: app/build/outputs/apk/release/NJFU-grinding-arm64-v8a-release.apk
+        if-no-files-found: warn
+
+    - name: Upload ARMv7 APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: armeabi-v7a-apk
+        path: app/build/outputs/apk/release/NJFU-grinding-armeabi-v7a-release.apk
+        if-no-files-found: warn
+
+    - name: Upload x86_64 APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: x86_64-apk
+        path: app/build/outputs/apk/release/NJFU-grinding-x86_64-release.apk
+        if-no-files-found: warn
+
+    - name: Upload x86 APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: x86-apk
+        path: app/build/outputs/apk/release/NJFU-grinding-x86-release.apk
+        if-no-files-found: warn
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: apk-artifacts
+
+    - name: Display structure of downloaded files
+      run: ls -R apk-artifacts
+
+    - name: Extract version info
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+
+    - name: Create Release Notes
+      id: release_notes
+      run: |
+        cat > release_notes.md << 'EOF'
+        ## NJFU刷题助手 v${{ steps.version.outputs.version }}
+        
+        ### 📦 多架构支持
+        
+        本次发布提供以下版本，请根据您的设备选择合适的APK：
+        
+        - **Universal APK (通用版)** - 包含所有架构，体积较大但兼容性最好，推荐大多数用户下载
+        - **ARM64-v8a** - 适用于大多数现代 Android 设备（2015年后的大部分手机）
+        - **ARMv7** - 适用于较老的 32位 ARM 设备
+        - **x86_64** - 适用于64位 x86 Android 设备（如模拟器）
+        - **x86** - 适用于32位 x86 Android 设备
+        
+        ### 如何选择合适的版本？
+        
+        1. **不确定选哪个？** → 下载 Universal APK
+        2. **想要最小体积？** → 根据设备架构选择对应版本
+        3. **2015年后的手机** → 通常选择 ARM64-v8a
+        4. **模拟器/x86设备** → 选择 x86_64 或 x86
+        
+        ### ✨ 更新内容
+        
+        - 支持多架构构建，优化不同设备的性能和体积
+        - 自动化 GitHub Actions 构建和发布流程
+        
+        ---
+        
+        💡 提示：如果您不确定设备架构，可以下载 **Universal APK**，它能在所有设备上运行。
+        EOF
+        cat release_notes.md
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: NJFU刷题助手 v${{ steps.version.outputs.version }}
+        body_path: release_notes.md
+        files: |
+          apk-artifacts/universal-apk/*.apk
+          apk-artifacts/arm64-v8a-apk/*.apk
+          apk-artifacts/armeabi-v7a-apk/*.apk
+          apk-artifacts/x86_64-apk/*.apk
+          apk-artifacts/x86-apk/*.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

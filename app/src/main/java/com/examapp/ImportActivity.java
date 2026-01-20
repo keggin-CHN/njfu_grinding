@@ -12,8 +12,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RadioGroup;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +30,7 @@ import java.io.InputStream;
 
 public class ImportActivity extends BaseActivity {
     private static final int FILE_PICKER_REQUEST_CODE = 100;
+    private static final String EXTRA_REPO_PATH = "EXTRA_REPO_PATH";
     
     // 预定义的标签颜色
     private static final int[] TAG_COLORS = {
@@ -60,6 +61,7 @@ public class ImportActivity extends BaseActivity {
     private Uri selectedFileUri;
     private int selectedTagColor = -1; // -1表示随机颜色
     private View selectedColorView = null;
+    private String repoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,22 @@ public class ImportActivity extends BaseActivity {
         selectFileButton = findViewById(R.id.select_file_button);
         importButton = findViewById(R.id.import_button);
         progressBar = findViewById(R.id.progress_bar);
+
+        // Check for file path passed from OnlineQuestionBankActivity
+        if (getIntent().hasExtra("EXTRA_FILE_PATH")) {
+            String filePath = getIntent().getStringExtra("EXTRA_FILE_PATH");
+            repoPath = getIntent().getStringExtra(EXTRA_REPO_PATH);
+            if (filePath != null) {
+                selectedFileUri = Uri.fromFile(new java.io.File(filePath));
+                selectFileButton.setText("文件已选择: " + selectedFileUri.getLastPathSegment());
+
+                // Auto-fill subject name from filename (remove extension)
+                String fileName = selectedFileUri.getLastPathSegment();
+                if (fileName != null && fileName.toLowerCase().endsWith(".json")) {
+                    subjectNameInput.setText(fileName.substring(0, fileName.length() - 5));
+                }
+            }
+        }
         
         // AI处理选项
         aiProcessRadioGroup = findViewById(R.id.ai_process_radio_group);
@@ -236,32 +254,44 @@ public class ImportActivity extends BaseActivity {
 
         new Thread(() -> {
             try {
-                InputStream inputStream = getContentResolver().openInputStream(selectedFileUri);
+                InputStream inputStream;
+                if ("file".equals(selectedFileUri.getScheme())) {
+                    inputStream = new java.io.FileInputStream(new java.io.File(selectedFileUri.getPath()));
+                } else {
+                    inputStream = getContentResolver().openInputStream(selectedFileUri);
+                }
+                
                 Subject subject = questionImporter.importFromJson(inputStream, subjectName, selectedTagColor);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     importButton.setEnabled(true);
-                    
+
                     // 检查是否需要AI处理
                     int checkedId = aiProcessRadioGroup.getCheckedRadioButtonId();
                     if (checkedId == R.id.radio_generate_explanations) {
                         // 需要生成AI解析,启动后台服务
                         int concurrency = Math.max(1, concurrencySeekBar.getProgress());
-                        
+
                         // 启动AI处理服务 - 只生成解析,不修复题目
                         Intent serviceIntent = new Intent(this, AIProcessingService.class);
                         serviceIntent.putExtra(AIProcessingService.EXTRA_SUBJECT_ID, subject.getId());
                         serviceIntent.putExtra(AIProcessingService.EXTRA_FIX_QUESTIONS, false);
                         serviceIntent.putExtra(AIProcessingService.EXTRA_GENERATE_EXPLANATIONS, true);
                         serviceIntent.putExtra(AIProcessingService.EXTRA_CONCURRENCY, concurrency);
-                        
+
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                             startForegroundService(serviceIntent);
                         } else {
                             startService(serviceIntent);
                         }
-                        
+
+                        if (repoPath != null) {
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra(EXTRA_REPO_PATH, repoPath);
+                            setResult(RESULT_OK, resultIntent);
+                        }
+
                         Toast.makeText(this, "题库已导入,AI解析生成将在后台进行", Toast.LENGTH_LONG).show();
                         finish();
                     } else {
@@ -284,6 +314,11 @@ public class ImportActivity extends BaseActivity {
                 .setMessage("成功导入 " + totalQuestions + " 道题目")
                 .setPositiveButton("确定", (dialog, which) -> {
                     dialog.dismiss();
+                    if (repoPath != null) {
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra(EXTRA_REPO_PATH, repoPath);
+                        setResult(RESULT_OK, resultIntent);
+                    }
                     finish();
                 })
                 .setCancelable(false)

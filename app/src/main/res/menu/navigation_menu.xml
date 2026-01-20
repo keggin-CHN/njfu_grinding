@@ -6,6 +6,11 @@
         android:title="@string/import_questions" />
 
     <item
+        android:id="@+id/nav_online_bank"
+        android:icon="@drawable/ic_link"
+        android:title="在线题库" />
+
+    <item
         android:id="@+id/nav_sync"
         android:icon="@drawable/ic_sync"
         android:title="同步数据" />

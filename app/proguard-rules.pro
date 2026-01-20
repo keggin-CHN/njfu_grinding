@@ -46,6 +46,18 @@
   @com.google.gson.annotations.SerializedName <fields>;
 }
 
+# 保留泛型签名信息 (修复 TypeToken 问题)
+-keepattributes Signature
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keepclassmembers class * extends com.google.gson.reflect.TypeToken {
+  *;
+}
+
+# 保留 GitHubFile 内部类 (修复 ClassCastException)
+-keep class com.examapp.OnlineQuestionBankActivity$GitHubFile { *; }
+-keepclassmembers class com.examapp.OnlineQuestionBankActivity$GitHubFile { *; }
+
 # ========== OkHttp ==========
 -dontwarn okhttp3.**
 -dontwarn okio.**
