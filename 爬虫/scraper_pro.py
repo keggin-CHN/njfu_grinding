@@ -20,8 +20,8 @@ def clean_question_text(text):
     return text.strip()
 
 #宏定义开始#
-USERNAME = "2410403123"
-PASSWORD = "112431"
+USERNAME = ""
+PASSWORD = ""
 EXAM_URL = "http://202.119.208.57/talk/ExamCaseGeneralStep.jspx?exam_id=fbb7a090-88a3-470c-b697-aaa108aacef6"
 LOOP_COUNT = 1
 BASE_URL = "http://202.119.208.57"
