@@ -4,7 +4,7 @@
 
 2.马原第三单元._测试使用.json 153题（迭代42次）————2025.11.25
 
-> ## 几个神秘链接（无鉴权太草台了！🤡）
+> ## 几个神秘链接（无鉴权太草台了！😂）
 
 - 中国近代史纲要 [<sup>1</sup>](https://minirainer.top/api/question_test/json/中国近代史纲要.json)
 - 习近平新时代中国特色社会主义思想 [<sup>2</sup>](https://minirainer.top/api/question_test/json/习近平新时代中国特色社会主义思想.json)
